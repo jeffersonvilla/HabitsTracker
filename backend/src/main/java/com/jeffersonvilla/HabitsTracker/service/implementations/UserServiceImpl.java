@@ -12,6 +12,8 @@ import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.UserService;
 import com.jeffersonvilla.HabitsTracker.validation.Validator;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.*;
+
 @Service
 public class UserServiceImpl implements UserService{
 
@@ -19,9 +21,6 @@ public class UserServiceImpl implements UserService{
     private final Mapper<User, UserDto> mapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final Validator<String> passwordValidator;
-
-    private final String USERNAME_IN_USE_MESSAGE = "Username already exists.";
-    private final String EMAIL_IN_USE_MESSAGE = "Email already exists.";
 
     public UserServiceImpl(UserRepo userRepo, Mapper<User, UserDto> mapper
         , BCryptPasswordEncoder passwordEncoder

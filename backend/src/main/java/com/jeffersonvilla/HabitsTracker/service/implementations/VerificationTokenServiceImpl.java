@@ -1,5 +1,7 @@
 package com.jeffersonvilla.HabitsTracker.service.implementations;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.INVALID_VERIFICATION_TOKEN;
+
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,8 +14,6 @@ import com.jeffersonvilla.HabitsTracker.service.interfaces.VerificationTokenServ
 
 @Service
 public class VerificationTokenServiceImpl implements VerificationTokenService{
-
-    private final String INVALID_VERIFICATION_TOKEN = "Verification token not valid.";
 
     private final VerificationTokenRepo verificationTokenRepo;
 
