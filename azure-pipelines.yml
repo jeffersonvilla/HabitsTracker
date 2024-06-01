@@ -1,61 +1,100 @@
 trigger:
-- main
+  branches:
+    include:
+      - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+
+variables:
+  mavenVersion: '3.2.5'
+  javaVersion: '21'
 
 stages:
-- stage: Build
-  displayName: Build stage
-  jobs:  
-  - job: Build
-    displayName: Build Maven Project
-    steps:
-    - task: Maven@4
-      displayName: 'Maven Package'
-      inputs:
-        mavenPomFile: 'backend/pom.xml'
-    - task: CopyFiles@2
-      displayName: 'Copy Files to artifact staging directory'
-      inputs:
-        SourceFolder: '$(System.DefaultWorkingDirectory)'
-        Contents: '**/target/*.?(war|jar)'
-        TargetFolder: $(Build.ArtifactStagingDirectory)
-    - upload: $(Build.ArtifactStagingDirectory)
-      artifact: drop
-    
-  - deployment: VMDeploy
-    displayName: web
-    environment:
-      name: Env1
-      resourceType: VirtualMachine
-    strategy:
-        rolling:
-          maxParallel: 2  #for percentages, mention as x%
-          preDeploy:
-            steps:
-            - download: current
-              artifact: drop
-            - script: echo initialize, cleanup, backup, install certs
-          deploy:
-            steps:
-            - task: Bash@3
-              inputs:
-                targetType: 'inline'
-                script: |
-                  # Modify deployment script based on the app type
-                  echo "Starting deployment script run"
-                  sudo java -jar '$(Pipeline.Workspace)/drop/**/target/*.jar'
-          routeTraffic:
-            steps:
-            - script: echo routing traffic
-          postRouteTraffic:
-            steps:
-            - script: echo health check post-route traffic
-          on:
-            failure:
+  - stage: Build
+    jobs:
+      - job: Build
+        steps:
+          - script: |
+              echo "Setting up Java $(javaVersion)"
+              sudo apt-get update
+              sudo apt-get install -y openjdk-21-jdk
+              sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-21-openjdk-amd64/bin/java 1
+              sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-21-openjdk-amd64/bin/javac 1
+              java -version
+              javac -version
+            displayName: 'Set up Java'
+
+          - script: |
+              echo "Installing Maven $(mavenVersion)"
+              wget https://archive.apache.org/dist/maven/maven-3/$(mavenVersion)/binaries/apache-maven-$(mavenVersion)-bin.tar.gz
+              tar xzvf apache-maven-$(mavenVersion)-bin.tar.gz
+              sudo mv apache-maven-$(mavenVersion) /usr/local/apache-maven
+              sudo ln -s /usr/local/apache-maven/bin/mvn /usr/bin/mvn
+              mvn -version
+            displayName: 'Install Maven'
+
+          - task: Maven@3
+            inputs:
+              mavenPomFile: 'backend/pom.xml'
+              mavenOptions: '-Xmx3072m'
+              javaHomeOption: 'Path'
+              jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
+              mavenVersionOption: 'Path'
+              mavenPath: '/usr/local/apache-maven/bin/mvn'
+              options: '--batch-mode'
+              goals: 'clean install'
+              publishJUnitResults: true
+              testResultsFiles: '**/target/surefire-reports/TEST-*.xml'
+              codeCoverageToolOption: 'JaCoCo'
+              codeCoverageClassFilesDirectories: '**/classes'
+              codeCoverageSourceDirectories: 'src/main/java'
+              codeCoverageReportDirectories: '**/target/site/jacoco'
+              codeCoverageInclude: '**/com/jeffersonvilla/**'
+
+  - stage: Deploy
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployToEnv1
+        environment: 'Env1'
+        strategy:
+          runOnce:
+            deploy:
               steps:
-              - script: echo Restore from backup! This is on failure
-            success:
-              steps:
-              - script: echo Notify! This is on success
+                - script: |
+                    echo "Setting up Java $(javaVersion)"
+                    sudo apt-get update
+                    sudo apt-get install -y openjdk-21-jdk
+                    sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-21-openjdk-amd64/bin/java 1
+                    sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-21-openjdk-amd64/bin/javac 1
+                    java -version
+                    javac -version
+                  displayName: 'Set up Java'
+
+                - script: |
+                    echo "Installing Maven $(mavenVersion)"
+                    wget https://archive.apache.org/dist/maven/maven-3/$(mavenVersion)/binaries/apache-maven-$(mavenVersion)-bin.tar.gz
+                    tar xzvf apache-maven-$(mavenVersion)-bin.tar.gz
+                    sudo mv apache-maven-$(mavenVersion) /usr/local/apache-maven
+                    sudo ln -s /usr/local/apache-maven/bin/mvn /usr/bin/mvn
+                    mvn -version
+                  displayName: 'Install Maven'
+
+                - task: Maven@3
+                  inputs:
+                    mavenPomFile: 'backend/pom.xml'
+                    mavenOptions: '-Xmx3072m'
+                    javaHomeOption: 'Path'
+                    jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
+                    mavenVersionOption: 'Path'
+                    mavenPath: '/usr/local/apache-maven/bin/mvn'
+                    options: '--batch-mode'
+                    goals: 'package'
+
+                - script: |
+                    echo "Deploying to Env1"
+                    # Add your deployment commands here, for example:
+                    # scp target/your-app.jar user@your-server:/path/to/deploy
+                    # ssh user@your-server 'bash /path/to/deploy/deploy.sh'
+                  displayName: 'Deploy Application'
