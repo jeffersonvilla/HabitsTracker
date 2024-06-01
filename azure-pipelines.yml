@@ -7,8 +7,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  mavenVersion: '3.2.5'
   javaVersion: '21'
+  mavenVersion: '3.2.5'
 
 stages:
   - stage: Build
@@ -25,23 +25,15 @@ stages:
               javac -version
             displayName: 'Set up Java'
 
-          - script: |
-              echo "Installing Maven $(mavenVersion)"
-              wget https://archive.apache.org/dist/maven/maven-3/$(mavenVersion)/binaries/apache-maven-$(mavenVersion)-bin.tar.gz
-              tar xzvf apache-maven-$(mavenVersion)-bin.tar.gz
-              sudo mv apache-maven-$(mavenVersion) /usr/local/apache-maven
-              sudo ln -s /usr/local/apache-maven/bin/mvn /usr/bin/mvn
-              mvn -version
-            displayName: 'Install Maven'
-
           - task: Maven@3
             inputs:
               mavenPomFile: 'backend/pom.xml'
               mavenOptions: '-Xmx3072m'
               javaHomeOption: 'Path'
               jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
-              mavenVersionOption: 'Path'
-              mavenPath: '/usr/local/apache-maven/bin/mvn'
+              mavenVersionOption: 'Provided'
+              mavenSetM2Home: true
+              mavenVersion: '$(mavenVersion)'
               options: '--batch-mode'
               goals: 'clean install'
               publishJUnitResults: true
@@ -78,8 +70,9 @@ stages:
                     mavenOptions: '-Xmx3072m'
                     javaHomeOption: 'Path'
                     jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
-                    mavenVersionOption: 'Path'
-                    mavenPath: '/usr/local/apache-maven/bin/mvn'
+                    mavenVersionOption: 'Provided'
+                    mavenSetM2Home: true
+                    mavenVersion: '$(mavenVersion)'
                     options: '--batch-mode'
                     goals: 'package'
 
