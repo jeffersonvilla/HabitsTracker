@@ -22,14 +22,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import com.jeffersonvilla.HabitsTracker.Dto.UserDto;
+import com.jeffersonvilla.HabitsTracker.Dto.RegisterUserRequestDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.EmailInUseException;
 import com.jeffersonvilla.HabitsTracker.exceptions.PasswordFormatException;
 import com.jeffersonvilla.HabitsTracker.exceptions.UsernameInUseException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
-import com.jeffersonvilla.HabitsTracker.service.implementations.UserServiceImpl;
+import com.jeffersonvilla.HabitsTracker.service.implementations.AuthServiceImpl;
 import com.jeffersonvilla.HabitsTracker.validation.Validator;
 
 
@@ -39,7 +39,7 @@ public class UserServiceImplTests {
     private UserRepo userRepo;
 
     @Mock
-    private Mapper<User, UserDto> mapper;
+    private Mapper<User, RegisterUserRequestDto> mapper;
 
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
@@ -48,16 +48,16 @@ public class UserServiceImplTests {
     private Validator<String> passwordValidator;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private AuthServiceImpl userService;
 
-    private UserDto userDto;
+    private RegisterUserRequestDto userDto;
 
     private User user;
 
     @BeforeEach
     public void setUp(){
         MockitoAnnotations.openMocks(this);
-        userDto = new UserDto("testUser", "testUser@correo", "Password1*");
+        userDto = new RegisterUserRequestDto("testUser", "testUser@correo", "Password1*");
         user = new User(1L, "testUser", "testUser@correo", "encodedPassword", false);
     }
     

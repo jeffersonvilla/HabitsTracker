@@ -1,29 +1,20 @@
 package com.jeffersonvilla.HabitsTracker.Dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 
-public class UserDto {
-    
+public class LoginRequestDto {
+
+    public String username;
+
+    public String email;
+
     @NotBlank
-    @NotEmpty
-    @Size(min = 4, max = 20)
-    private String username;
-    
-    @Email
-    @NotEmpty
-    private String email;
+    public String password;
 
-    @NotEmpty
-    private String password;
-
-    public UserDto() {
+    public LoginRequestDto() {
     }
 
-    public UserDto(@NotBlank @NotEmpty @Size(min = 4, max = 20) String username, @Email @NotEmpty String email,
-            @NotEmpty String password) {
+    public LoginRequestDto(String username, String email, @NotBlank String password) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -53,9 +44,6 @@ public class UserDto {
         this.password = password;
     }
 
-    @Override
-    public String toString() {
-        return "UserDto [username=" + username + ", email=" + email + "]";
-    }
+    
     
 }
