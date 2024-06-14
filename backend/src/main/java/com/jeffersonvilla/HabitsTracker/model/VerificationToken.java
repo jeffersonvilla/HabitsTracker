@@ -60,7 +60,7 @@ public class VerificationToken {
 
     @Override
     public String toString() {
-        return "EmailVerfication [id=" + id + ", token=" + token + ", user=" + user.toString() + "]";
+        return "VerificationToken [id=" + id + ", token=" + token + ", user=" + user.toString() + "]";
     }
     
 }

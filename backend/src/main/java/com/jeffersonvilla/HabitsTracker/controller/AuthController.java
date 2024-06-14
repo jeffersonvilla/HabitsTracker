@@ -23,13 +23,13 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
-    private final AuthService userService;
+    private final AuthService authService;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
 
     public AuthController(AuthService userService, VerificationTokenService verificationTokenService
         , EmailService emailService){
-        this.userService = userService;
+        this.authService = userService;
         this.verificationTokenService = verificationTokenService;
         this.emailService = emailService;
     }
@@ -39,7 +39,7 @@ public class AuthController {
 
         emailService.sendVerificationEmail(
             verificationTokenService.generateToken(
-                userService.register(userDto)
+                authService.register(userDto)
             )
         );
 
@@ -52,14 +52,14 @@ public class AuthController {
     @GetMapping("/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam String token){
         
-        userService.verifyUser(verificationTokenService.verifyToken(token).getUser());
+        authService.verifyUser(verificationTokenService.verifyToken(token).getUser());
         String message =  "Your email has been successfully verified! Welcome aboard!";
         return new ResponseEntity<String>(message, HttpStatus.OK);
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginRequestDto logingDto){
-        String jwt = userService.login(logingDto);
+        String jwt = authService.login(logingDto);
         return new ResponseEntity<String>(jwt, HttpStatus.OK);
 
     }

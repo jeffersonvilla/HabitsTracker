@@ -13,7 +13,6 @@ public class UserMapper implements Mapper<User, RegisterUserRequestDto>{
         RegisterUserRequestDto dto = new RegisterUserRequestDto();
         dto.setUsername(model.getUsername());
         dto.setEmail(model.getEmail());
-        //dto.setPassword(model.getPassword());
         return dto;
     }
 

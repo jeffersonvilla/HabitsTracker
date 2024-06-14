@@ -8,7 +8,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
+
+import java.util.Optional;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
@@ -21,8 +24,14 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepo.findByUsernameOrEmail(username, username)
-				.orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
+        
+        Optional<User> userFound = userRepo.findByUsernameOrEmail(username, username);
+
+        if(userFound.isEmpty()) {
+            throw new UserNotFoundException(USER_NOT_FOUND);
+        }
+
+        return userFound.get();
     }
     
 }

@@ -23,7 +23,7 @@ import java.util.Map;
 public class JwtService {
     
     @Value("${jwt.secret}")
-    private String SECRET_KEY;
+    private String SECRET_KEY = "600e6e3c514e3f57e8c4860244e4505d9220f5eda8104b1c3446d3b41e3f19d8"; //Value assigned for testing purposes
     private final long EXPIRATION_TIME = 86400000; // 1 day in milliseconds
 
     public String extractUsername(String token) {
