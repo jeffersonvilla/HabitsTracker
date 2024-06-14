@@ -26,13 +26,6 @@ public class JwtServiceTests {
 
     private String username = "testUsername";
 
-    //Using secret key for testing purposes: 600e6e3c514e3f57e8c4860244e4505d9220f5eda8104b1c3446d3b41e3f19d8
-    //private String token = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0VXNlcm5hb"
-    //                +"WUiLCJpYXQiOjE3MTgyMzMyOTgsImV4cCI6MTcxODMxOTY5OH0.TRy4SF"
-     //               +"__g9A0EOZelluhEM-gZdJ5YmlKJ0Zap9k0tWve1pM8cPMfefOLv_oOjvel";
-
-    private String SECRET_KEY = "600e6e3c514e3f57e8c4860244e4505d9220f5eda8104b1c3446d3b41e3f19d8";
-
     @BeforeEach
     public void setUp(){
         MockitoAnnotations.openMocks(this);

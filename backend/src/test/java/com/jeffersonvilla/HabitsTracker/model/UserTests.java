@@ -1,8 +1,6 @@
 package com.jeffersonvilla.HabitsTracker.model;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.GrantedAuthority;
-import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
