@@ -52,7 +52,6 @@ public class PasswordFormatValidatorTests {
         };
 
         for (String password : invalidPasswords) {
-            System.out.println("pass: "+ password);
             PasswordFormatException ex = assertThrows(
                 PasswordFormatException.class, 
                 () -> {
