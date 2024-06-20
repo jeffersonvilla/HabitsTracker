@@ -25,6 +25,7 @@ public class JwtServiceTests {
     private UserDetails userDetails;
 
     private String username = "testUsername";
+    private Long id = 1L;
 
     @BeforeEach
     public void setUp(){
@@ -33,31 +34,31 @@ public class JwtServiceTests {
 
     @Test
     void test_extractUsername(){
-        String token = jwtService.generateToken(username);
+        String token = jwtService.generateToken(username, id);
         assertEquals(username, jwtService.extractUsername(token));
     }
 
     @Test
     void test_extractExpiration(){
-        String token = jwtService.generateToken(username);
+        String token = jwtService.generateToken(username, id);
         assertNotNull(jwtService.extractExpiration(token));
     }
 
     @Test
     void test_generateToken(){
-        assertNotNull(jwtService.generateToken(username));
+        assertNotNull(jwtService.generateToken(username, id));
     }
 
     @Test
     void test_validateToken_valid(){
-        String tokenGenerated = jwtService.generateToken(username);
+        String tokenGenerated = jwtService.generateToken(username, id);
         when(userDetails.getUsername()).thenReturn(username);
         assertTrue(jwtService.validateToken(tokenGenerated, userDetails));
     }
 
     @Test
     void test_validateToken_usernameNotvalid_ExpirationValid(){
-        String tokenGenerated = jwtService.generateToken(username);
+        String tokenGenerated = jwtService.generateToken(username, id);
         when(userDetails.getUsername()).thenReturn("otherUseranme");
         assertFalse(jwtService.validateToken(tokenGenerated, userDetails));
     }
@@ -65,7 +66,7 @@ public class JwtServiceTests {
     @Test
     public void test_validateToken_usernameValid_tokenExpired() {
 
-        String token = jwtService.generateToken(username);
+        String token = jwtService.generateToken(username, id);
 
         JwtService mockJwtService = mock(JwtService.class);
 
@@ -78,7 +79,7 @@ public class JwtServiceTests {
     @Test
     public void test_validateToken_usernameNotValid_tokenExpired() {
 
-        String token = jwtService.generateToken(username);
+        String token = jwtService.generateToken(username, id);
 
         JwtService mockJwtService = mock(JwtService.class);
 

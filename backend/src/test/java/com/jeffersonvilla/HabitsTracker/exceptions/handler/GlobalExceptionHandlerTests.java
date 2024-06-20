@@ -15,7 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.handler.GlobalExceptionHandler.ErrorResponse;
 
 public class GlobalExceptionHandlerTests {

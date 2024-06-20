@@ -26,6 +26,8 @@ public class JwtService {
     private String SECRET_KEY = "600e6e3c514e3f57e8c4860244e4505d9220f5eda8104b1c3446d3b41e3f19d8"; //Value assigned for testing purposes
     private final long EXPIRATION_TIME = 86400000; // 1 day in milliseconds
 
+    private final String USER_ID_CLAIM = "userId";
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -39,8 +41,9 @@ public class JwtService {
         return claimsResolver.apply(claims);
     } 
 
-    public String generateToken(String username) {
+    public String generateToken(String username, Long userId) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put(USER_ID_CLAIM, userId);
         return createToken(claims, username);
     }
 
@@ -74,5 +77,10 @@ public class JwtService {
 
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get(USER_ID_CLAIM, Long.class);
     }
 }

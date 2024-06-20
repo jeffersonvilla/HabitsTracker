@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.PasswordFormatException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.PasswordFormatException;
 
 public class PasswordFormatValidatorTests {
 

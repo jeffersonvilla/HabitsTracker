@@ -1,4 +1,4 @@
-package com.jeffersonvilla.HabitsTracker.exceptions;
+package com.jeffersonvilla.HabitsTracker.exceptions.auth;
 
 public class PasswordFormatException extends RuntimeException{
 

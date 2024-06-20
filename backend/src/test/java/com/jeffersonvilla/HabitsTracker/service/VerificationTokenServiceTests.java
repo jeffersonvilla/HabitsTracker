@@ -19,7 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.VerificationTokenNotExistsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.VerificationTokenNotExistsException;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.model.VerificationToken;
 import com.jeffersonvilla.HabitsTracker.repository.VerificationTokenRepo;

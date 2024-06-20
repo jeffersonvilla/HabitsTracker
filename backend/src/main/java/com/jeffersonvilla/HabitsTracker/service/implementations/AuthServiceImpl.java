@@ -6,11 +6,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.jeffersonvilla.HabitsTracker.Dto.RegisterUserRequestDto;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.EmailInUseException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.InvalidLoginCredentialsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UsernameInUseException;
 import com.jeffersonvilla.HabitsTracker.Dto.LoginRequestDto;
-import com.jeffersonvilla.HabitsTracker.exceptions.EmailInUseException;
-import com.jeffersonvilla.HabitsTracker.exceptions.InvalidLoginCredentialsException;
-import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
-import com.jeffersonvilla.HabitsTracker.exceptions.UsernameInUseException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService{
             )
         );
 
-        return jwtService.generateToken(userFound.getUsername());
+        return jwtService.generateToken(userFound.getUsername(), userFound.getId());
 
     }
 
