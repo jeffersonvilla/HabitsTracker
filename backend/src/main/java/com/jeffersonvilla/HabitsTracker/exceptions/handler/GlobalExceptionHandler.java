@@ -17,8 +17,6 @@ import com.jeffersonvilla.HabitsTracker.exceptions.auth.VerificationTokenNotExis
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 
-import io.jsonwebtoken.ExpiredJwtException;
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
     

@@ -7,7 +7,6 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,6 @@ import com.jeffersonvilla.HabitsTracker.repository.HabitCategoryRepo;
 import com.jeffersonvilla.HabitsTracker.repository.HabitRepo;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.HabitService;
-import com.jeffersonvilla.HabitsTracker.util.JwtService;
 
 @Service
 public class HabitServiceImpl implements HabitService{
@@ -32,16 +30,14 @@ public class HabitServiceImpl implements HabitService{
     private final HabitCategoryRepo categoryRepo;
     private final UserRepo userRepo;
     private final Mapper<Habit, HabitDto> mapper;
-    private final JwtService jwtService;
 
 
     public HabitServiceImpl(HabitRepo habitRepo, HabitCategoryRepo categoryRepo, UserRepo userRepo
-        , Mapper<Habit, HabitDto> mapper, JwtService jwtService){
+        , Mapper<Habit, HabitDto> mapper){
         this.habitRepo = habitRepo;
         this.categoryRepo = categoryRepo;
         this.userRepo = userRepo;
         this.mapper = mapper;
-        this.jwtService = jwtService;
     }
 
     @Override

@@ -4,7 +4,6 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_INVALID_SIGNATURE;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
