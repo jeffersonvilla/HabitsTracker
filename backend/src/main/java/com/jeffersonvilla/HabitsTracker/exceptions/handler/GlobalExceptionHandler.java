@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.jeffersonvilla.HabitsTracker.exceptions.EmailInUseException;
+import com.jeffersonvilla.HabitsTracker.exceptions.InvalidLoginCredentialsException;
 import com.jeffersonvilla.HabitsTracker.exceptions.PasswordFormatException;
+import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.UsernameInUseException;
 import com.jeffersonvilla.HabitsTracker.exceptions.VerificationTokenNotExistsException;
 
@@ -28,10 +30,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({PasswordFormatException.class, UsernameInUseException.class, 
-        EmailInUseException.class, VerificationTokenNotExistsException.class})
+        EmailInUseException.class, VerificationTokenNotExistsException.class,
+        InvalidLoginCredentialsException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ErrorResponse> handleUserRegister(RuntimeException ex){
+    public ResponseEntity<ErrorResponse> handleBadRequest_Register_Login(RuntimeException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage());
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler({UserNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.toString(), ex.getMessage());
         return ResponseEntity.badRequest().body(errorResponse);
     }
 

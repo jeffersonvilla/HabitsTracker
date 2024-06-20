@@ -16,19 +16,13 @@ import {
     Alert,
 } from '@mui/material';
 
+// Custom validation schema to handle either username or email
 const validationSchema = Yup.object().shape({
-    username: Yup.string().required('Username is required'),
-    email: Yup.string().email('Invalid email format').required('Email is required'),
-    password: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
-        .matches(
-            /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$/,
-            'Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character'
-        )
-        .required('Password is required'),
+    usernameOrEmail: Yup.string().required('Username or Email is required'),
+    password: Yup.string().required('Password is required'),
 });
 
-const RegisterForm = () => {
+const LoginForm = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -47,23 +41,24 @@ const RegisterForm = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:8080/api/v1/user/register', {
+            const response = await fetch('http://localhost:8080/api/v1/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify({ username: data.usernameOrEmail, email: data.usernameOrEmail, password: data.password }),
             });
 
-
             if (response.status === 200) {
-                const responseData = await response.text(); // Assuming a plain text response
-                console.log('Registration successful!', responseData);
-                setSnackbarMessage(responseData);
+                const jwt = await response.text(); 
+                console.log('Login successful!', jwt);
+                setSnackbarMessage('Login successful!');
                 setSnackbarOpen(true);
                 reset();
-                // Handle successful registration (e.g., redirect to login page)
+                // Handle successful login (save JWT, redirect to dashboard)
             } else if (response.status === 400) {
-                const responseData = await response.json(); // Assuming a JSON response
-                throw new Error(responseData.message || 'Registration failed');
+                const responseData = await response.json(); 
+                throw new Error(responseData.message || 'Login failed');
+            } else if (response.status === 403) {
+                throw new Error('Please verify your account by clicking the link sent to your email.');
             } else {
                 throw new Error('Unexpected error occurred');
             }  
@@ -80,21 +75,14 @@ const RegisterForm = () => {
             <Card variant="outlined">
                 <CardContent>
                     <Typography variant="h5" component="div" gutterBottom>
-                        Register
+                        Login
                     </Typography>
                     <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <TextField
-                            {...register('username')}
-                            label="Username"
-                            error={!!errors.username}
-                            helperText={errors.username?.message}
-                        />
-                        <TextField
-                            {...register('email')}
-                            label="Email"
-                            type="email"
-                            error={!!errors.email}
-                            helperText={errors.email?.message}
+                            {...register('usernameOrEmail')}
+                            label="Username or Email"
+                            error={!!errors.usernameOrEmail}
+                            helperText={errors.usernameOrEmail?.message}
                         />
                         <FormControl fullWidth variant="outlined">
                             <InputLabel htmlFor="password">Password</InputLabel>
@@ -110,7 +98,7 @@ const RegisterForm = () => {
                             </FormHelperText>
                         </FormControl>
                         <Button type="submit" variant="contained" disabled={isLoading}>
-                            {isLoading ? 'Registering...' : 'Register'}
+                            {isLoading ? 'Logging in...' : 'Login'}
                         </Button>
                         {error && <p style={{ color: 'red' }}>{error}</p>}
                     </form>
@@ -130,4 +118,4 @@ const RegisterForm = () => {
     );
 };
 
-export default RegisterForm;
+export default LoginForm;

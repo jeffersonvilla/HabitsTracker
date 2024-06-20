@@ -20,7 +20,7 @@ public class EmailServiceImpl implements EmailService{
     public void sendVerificationEmail(VerificationToken verficationToken) {
         String recipientAddress = verficationToken.getUser().getEmail();
         String subject = "Account Verification";
-        String verificationUrl = "http://localhost:8080/api/v1/user/verify?token=" + verficationToken.getToken();
+        String verificationUrl = "http://localhost:8080/api/v1/auth/verify?token=" + verficationToken.getToken();
 
         SimpleMailMessage email = new SimpleMailMessage();
         email.setTo(recipientAddress);

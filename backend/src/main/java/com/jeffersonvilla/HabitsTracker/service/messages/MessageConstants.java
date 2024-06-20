@@ -9,5 +9,7 @@ public class MessageConstants {
         +"long, include at least one digit, one uppercase letter, one lowercase letter, one special "
         +"character (@#%$^, etc.), and contain no spaces or tabs.";
 
-
+    public static final String NEEDED_USERNAME_OR_EMAIL = "The username (or email) is needed for login.";
+    public static final String USER_NOT_FOUND = "User with username or email not found.";
+    public static final String INVALID_PASSWORD = "The password is not correct.";
 }

@@ -10,35 +10,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jeffersonvilla.HabitsTracker.Dto.UserDto;
+import com.jeffersonvilla.HabitsTracker.Dto.RegisterUserRequestDto;
+import com.jeffersonvilla.HabitsTracker.Dto.LoginRequestDto;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.EmailService;
-import com.jeffersonvilla.HabitsTracker.service.interfaces.UserService;
+import com.jeffersonvilla.HabitsTracker.service.interfaces.AuthService;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.VerificationTokenService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/auth")
 @CrossOrigin(origins = "http://localhost:3000")
-public class UserController {
+public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
 
-    public UserController(UserService userService, VerificationTokenService verificationTokenService
+    public AuthController(AuthService userService, VerificationTokenService verificationTokenService
         , EmailService emailService){
-        this.userService = userService;
+        this.authService = userService;
         this.verificationTokenService = verificationTokenService;
         this.emailService = emailService;
     }
     
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody UserDto userDto){
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterUserRequestDto userDto){
 
         emailService.sendVerificationEmail(
             verificationTokenService.generateToken(
-                userService.register(userDto)
+                authService.register(userDto)
             )
         );
 
@@ -51,8 +52,15 @@ public class UserController {
     @GetMapping("/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam String token){
         
-        userService.verifyUser(verificationTokenService.verifyToken(token).getUser());
+        authService.verifyUser(verificationTokenService.verifyToken(token).getUser());
         String message =  "Your email has been successfully verified! Welcome aboard!";
         return new ResponseEntity<String>(message, HttpStatus.OK);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@Valid @RequestBody LoginRequestDto logingDto){
+        String jwt = authService.login(logingDto);
+        return new ResponseEntity<String>(jwt, HttpStatus.OK);
+
     }
 }
