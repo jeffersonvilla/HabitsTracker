@@ -14,6 +14,7 @@ import com.jeffersonvilla.HabitsTracker.exceptions.auth.PasswordFormatException;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UsernameInUseException;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.VerificationTokenNotExistsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 
@@ -60,6 +61,14 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), ex.getMessage());
         return ResponseEntity.badRequest().body(errorResponse);
     }
+
+    @ExceptionHandler({HabitAccessDeniedException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleHabitAccessDenied(HabitAccessDeniedException ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), ex.getMessage());
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
     
     /*@ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

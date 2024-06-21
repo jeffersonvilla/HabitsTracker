@@ -3,8 +3,12 @@ package com.jeffersonvilla.HabitsTracker.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +54,24 @@ public class HabitControllerTests {
         assertNotNull(response.getBody());
 
         verify(habitService).createHabit(any());
+    }
+
+    @Test
+    public void test_listAllHabits_sucess(){
+
+        HabitDto habit1 = mock(HabitDto.class);
+        HabitDto habit2 = mock(HabitDto.class);
+        List<HabitDto> resultList = List.of(habit1, habit2);
+
+        when(habitService.getAllHabits(anyLong())).thenReturn(resultList);
+
+        ResponseEntity<List<HabitDto>> response = habitController.listAllHabits(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(resultList, response.getBody());
+
+        verify(habitService).getAllHabits(anyLong());
     }
 
 }

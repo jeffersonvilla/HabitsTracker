@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.handler.GlobalExceptionHandler.ErrorResponse;
@@ -84,13 +85,26 @@ public class GlobalExceptionHandlerTests {
     }
 
     @Test
-    void test_handleHabitCreation_Denied(){
+    void test_handleHabit_Creation_Denied(){
         
         String message = "message";
 
         HabitCreationDeniedException ex = new HabitCreationDeniedException(message);
 
         ResponseEntity<ErrorResponse> errorResponse = globalExceptionHandler.handleHabitCreationDenied(ex);
+
+        assertEquals(HttpStatus.UNAUTHORIZED.toString(), errorResponse.getBody().getStatus());
+        assertEquals(message, errorResponse.getBody().getMessage());
+    }
+
+    @Test
+    void test_handleHabit_Access_Denied(){
+        
+        String message = "message";
+
+        HabitAccessDeniedException ex = new HabitAccessDeniedException(message);
+
+        ResponseEntity<ErrorResponse> errorResponse = globalExceptionHandler.handleHabitAccessDenied(ex);
 
         assertEquals(HttpStatus.UNAUTHORIZED.toString(), errorResponse.getBody().getStatus());
         assertEquals(message, errorResponse.getBody().getMessage());
