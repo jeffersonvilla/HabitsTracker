@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Button, Typography, Container } from '@mui/material';
 import RegisterForm from './auth/RegisterForm'
 import LoginForm from './auth/LoginForm';
 import CreateHabitForm from './habits/CreateHabitForm';
+import HabitList from './habits/HabitList';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,6 +50,9 @@ function App() {
                 <Button color="inherit" component={Link} to="/new-habit">
                   New Habit
                 </Button>
+                <Button color="inherit" component={Link} to="/list-habits">
+                  List Habits
+                </Button>
                 <Button color="inherit" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -61,6 +65,7 @@ function App() {
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/login" element={<LoginForm onLogin={handleLogin}/>} />
             <Route path="/new-habit" element={isAuthenticated ? <CreateHabitForm /> : <Navigate to="/login" />} />
+            <Route path="/list-habits" element={isAuthenticated ? <HabitList /> : <Navigate to="/login" />} />
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="*" element={<Typography variant="h4" component="div" style={{ marginTop: '20px' }}>
               Page Not Found
