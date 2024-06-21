@@ -1,16 +1,19 @@
 package com.jeffersonvilla.HabitsTracker.service;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
@@ -179,5 +183,88 @@ public class HabitServiceImplTests {
         verify(habitCategoryRepo).findById(anyLong());
         verify(habitRepo).save(any());
         verify(mapper).toDto(any());
+    }
+
+    /**
+     * When the user id passed as argument does not exist on database
+     * */ 
+    @Test
+    public void getAllHabits_user_NotFound(){
+
+        when(userRepo.findById(anyLong())).thenReturn(Optional.empty());
+
+        UserNotFoundException exceptionThrown = assertThrows(
+            UserNotFoundException.class, 
+            () -> {
+                habitService.getAllHabits(1L);
+            }
+        );
+
+        assertEquals(USER_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(userRepo).findById(anyLong());
+        verify(securityContext, times(0)).getAuthentication();
+        verify(habitRepo, times(0)).findByUser(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    /**
+     * When the username signed on the jwt is not the same of the one found in
+     * the database (with the id passed as argument)
+     * */
+    @Test
+    public void getAllHabits_userNotAuthorized(){
+
+        when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
+
+        when(authentication.getName()).thenReturn("otherUsername");
+
+        HabitAccessDeniedException exceptionThrown = assertThrows(
+            HabitAccessDeniedException.class,
+            () -> {
+                habitService.getAllHabits(user.getId());
+            });
+
+        assertEquals(USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER, exceptionThrown.getMessage());
+
+        verify(userRepo).findById(anyLong());
+        verify(securityContext).getAuthentication();
+        verify(authentication).getName();
+        verify(habitRepo, times(0)).findByUser(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void getAllHabits_success(){
+
+        HabitDto habitDto1 = mock(HabitDto.class);
+        HabitDto habitDto2 = mock(HabitDto.class);
+        List<HabitDto> expectedList = List.of(habitDto1, habitDto2);
+
+        Habit habit1 = mock(Habit.class);
+        Habit habit2 = mock(Habit.class);
+        List<Habit> habitsFound = List.of(habit1, habit2);
+
+        when(userRepo.findById(user.getId())).thenReturn(Optional.of(user));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(habitRepo.findByUser(any())).thenReturn(habitsFound);
+        
+        when(mapper.toDto(habit1)).thenReturn(habitDto1);
+        when(mapper.toDto(habit2)).thenReturn(habitDto2);
+
+        List<HabitDto> resultList = habitService.getAllHabits(user.getId());
+        
+        assertEquals(expectedList, resultList);
+
+        verify(userRepo).findById(anyLong());
+        verify(securityContext).getAuthentication();
+        verify(authentication).getName();
+        verify(habitRepo).findByUser(any());
+        verify(mapper, times(habitsFound.size())).toDto(any());
+
     }
 }
