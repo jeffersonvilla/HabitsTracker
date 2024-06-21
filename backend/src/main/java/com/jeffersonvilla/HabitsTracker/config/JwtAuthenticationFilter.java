@@ -1,8 +1,12 @@
 package com.jeffersonvilla.HabitsTracker.config;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_EXPIRED;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_INVALID_SIGNATURE;
+
 import java.io.IOException;
 
 import org.springframework.lang.NonNull;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.jeffersonvilla.HabitsTracker.util.JwtService;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,23 +50,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         }
         jwt = authHeader.substring(7);
 
-        String username = jwtService.extractUsername(jwt);
+        try {
 
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if(jwtService.validateToken(jwt, userDetails)){
-                UsernamePasswordAuthenticationToken authToken = 
-                    new UsernamePasswordAuthenticationToken(
-                        userDetails, 
-                        null, 
-                        userDetails.getAuthorities()
-                        );
-                
-                authToken.setDetails( new WebAuthenticationDetailsSource().buildDetails(request));
+            String username = jwtService.extractUsername(jwt);
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if(jwtService.validateToken(jwt, userDetails)){
+                    UsernamePasswordAuthenticationToken authToken = 
+                        new UsernamePasswordAuthenticationToken(
+                            userDetails, 
+                            null, 
+                            userDetails.getAuthorities()
+                            );
+                    
+                    authToken.setDetails( new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+            
+        } catch (ExpiredJwtException e) {
+            throw new AccessDeniedException(JWT_TOKEN_EXPIRED);
+        } catch (SignatureException | IllegalArgumentException e) {
+            throw new AccessDeniedException(JWT_TOKEN_INVALID_SIGNATURE);
         }
+        
         filterChain.doFilter(request, response);
     }
     

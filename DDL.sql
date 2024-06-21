@@ -23,3 +23,36 @@ CREATE TABLE `habits_tracker`.`email_verification` (
     REFERENCES `habits_tracker`.`user` (`idUser`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
+    
+CREATE TABLE `habits_tracker`.`habit_category` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL,
+  `user_id` INT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_habit_category_idx` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `user_habit_category`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `habits_tracker`.`user` (`idUser`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+    
+CREATE TABLE `habits_tracker`.`habit` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NOT NULL,
+  `description` TEXT NULL,
+  `habit_trigger` TEXT NULL,
+  `category_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `user_habit_idx` (`category_id` ASC) VISIBLE,
+  INDEX `user_habit_idx1` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `category`
+    FOREIGN KEY (`category_id`)
+    REFERENCES `habits_tracker`.`habit_category` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `user_habit`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `habits_tracker`.`user` (`idUser`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);

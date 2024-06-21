@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.VerificationTokenNotExistsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.VerificationTokenNotExistsException;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.model.VerificationToken;
 import com.jeffersonvilla.HabitsTracker.repository.VerificationTokenRepo;

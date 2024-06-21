@@ -46,7 +46,7 @@ public class EmailServiceImplTests {
 
         assertEquals(user.getEmail(), emailSent.getTo()[0]);
         assertEquals("Account Verification", emailSent.getSubject());
-        assertEquals("Please click the following link to verify your account: http://localhost:8080/api/v1/user/verify?token=token123", emailSent.getText());
+        assertEquals("Please click the following link to verify your account: http://localhost:8080/api/v1/auth/verify?token=token123", emailSent.getText());
     }
 
 }

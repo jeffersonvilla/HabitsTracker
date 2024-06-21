@@ -28,11 +28,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.jeffersonvilla.HabitsTracker.Dto.LoginRequestDto;
 import com.jeffersonvilla.HabitsTracker.Dto.RegisterUserRequestDto;
-import com.jeffersonvilla.HabitsTracker.exceptions.EmailInUseException;
-import com.jeffersonvilla.HabitsTracker.exceptions.InvalidLoginCredentialsException;
-import com.jeffersonvilla.HabitsTracker.exceptions.PasswordFormatException;
-import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
-import com.jeffersonvilla.HabitsTracker.exceptions.UsernameInUseException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.EmailInUseException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.InvalidLoginCredentialsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.PasswordFormatException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UsernameInUseException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
@@ -185,7 +185,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(0)).findByUsernameOrEmail(anyString(), anyString());
         verify(passwordEncoder, times(0)).matches(anyString(), anyString());
         verify(authManager, times(0)).authenticate(any());
-        verify(jwtService, times(0)).generateToken(anyString());
+        verify(jwtService, times(0)).generateToken(anyString(), any());
     }
 
     @Test
@@ -207,7 +207,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(anyString(), anyString());
         verify(passwordEncoder, times(0)).matches(anyString(), anyString());
         verify(authManager, times(0)).authenticate(any());
-        verify(jwtService, times(0)).generateToken(anyString());
+        verify(jwtService, times(0)).generateToken(anyString(), any());
 
     }
 
@@ -229,7 +229,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(loginRequestDto.getUsername(), null);
         verify(passwordEncoder, times(0)).matches(anyString(), anyString());
         verify(authManager, times(0)).authenticate(any());
-        verify(jwtService, times(0)).generateToken(anyString());
+        verify(jwtService, times(0)).generateToken(anyString(), any());
     }
 
     @Test
@@ -250,7 +250,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(null, loginRequestDto.getEmail());
         verify(passwordEncoder, times(0)).matches(anyString(), anyString());
         verify(authManager, times(0)).authenticate(any());
-        verify(jwtService, times(0)).generateToken(anyString());
+        verify(jwtService, times(0)).generateToken(anyString(), any());
     }
 
     @Test
@@ -273,7 +273,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(anyString(), anyString());
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(authManager, times(0)).authenticate(any());
-        verify(jwtService, times(0)).generateToken(anyString());
+        verify(jwtService, times(0)).generateToken(anyString(), any());
     }
 
     @Test
@@ -289,7 +289,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(anyString(), anyString());
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(authManager, times(1)).authenticate(any());
-        verify(jwtService, times(1)).generateToken(anyString());
+        verify(jwtService, times(1)).generateToken(anyString(), any());
     }
 
     @Test
@@ -305,7 +305,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(loginRequestDto.getUsername(), null);
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(authManager, times(1)).authenticate(any());
-        verify(jwtService, times(1)).generateToken(anyString());
+        verify(jwtService, times(1)).generateToken(anyString(), any());
     }
 
     @Test
@@ -321,7 +321,7 @@ public class AuthServiceImplTests {
         verify(userRepo, times(1)).findByUsernameOrEmail(null, loginRequestDto.getEmail());
         verify(passwordEncoder, times(1)).matches(anyString(), anyString());
         verify(authManager, times(1)).authenticate(any());
-        verify(jwtService, times(1)).generateToken(anyString());
+        verify(jwtService, times(1)).generateToken(anyString(), any());
     }
 
 }

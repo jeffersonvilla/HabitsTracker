@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.EmailInUseException;
-import com.jeffersonvilla.HabitsTracker.exceptions.InvalidLoginCredentialsException;
-import com.jeffersonvilla.HabitsTracker.exceptions.PasswordFormatException;
-import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
-import com.jeffersonvilla.HabitsTracker.exceptions.UsernameInUseException;
-import com.jeffersonvilla.HabitsTracker.exceptions.VerificationTokenNotExistsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.EmailInUseException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.InvalidLoginCredentialsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.PasswordFormatException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UsernameInUseException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.VerificationTokenNotExistsException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,6 +47,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
+    @ExceptionHandler({HabitCategoryNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ErrorResponse> handleHabitCategoryNotFound(HabitCategoryNotFoundException ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.toString(), ex.getMessage());
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler({HabitCreationDeniedException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleHabitCreationDenied(HabitCreationDeniedException ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), ex.getMessage());
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+    
     /*@ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {

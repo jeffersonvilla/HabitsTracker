@@ -46,7 +46,7 @@ public class UserTests {
         User user = new User(3L, "mary_jones", "mary@example.com", "pass123", true);
 
         // Test toString method
-        String expectedString = "User [id=3, username=mary_jones, email=mary@example.com, password=pass123, verified=true]";
+        String expectedString = "User [id=3, username=mary_jones, email=mary@example.com, verified=true]";
         assertEquals(expectedString, user.toString());
     }
 

@@ -1,6 +1,7 @@
 package com.jeffersonvilla.HabitsTracker.model;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -32,6 +34,9 @@ public class User implements UserDetails {
 
     @Column(name = "verified", columnDefinition = "TINYINT")
     private boolean verified;
+
+    //@OneToMany
+    //private List<Habit> habits;
 
     public User() {
     }
@@ -82,7 +87,7 @@ public class User implements UserDetails {
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", username=" + username + ", email=" + email + ", password=" + password
+        return "User [id=" + id + ", username=" + username + ", email=" + email
                 + ", verified=" + verified + "]";
     }
 
@@ -115,5 +120,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return verified;
     }
+
+
 
 }

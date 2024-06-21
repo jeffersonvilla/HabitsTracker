@@ -4,7 +4,7 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 
 import org.springframework.stereotype.Component;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.PasswordFormatException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.PasswordFormatException;
 
 @Component
 //@Qualifier("passwordFormatValidator")

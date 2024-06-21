@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
 

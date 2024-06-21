@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.jeffersonvilla.HabitsTracker.exceptions.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.model.User;
 import com.jeffersonvilla.HabitsTracker.repository.UserRepo;
 
