@@ -49,14 +49,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({HabitCategoryNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(HabitCategoryNotFoundException ex){
+    public ResponseEntity<ErrorResponse> handleHabitCategoryNotFound(HabitCategoryNotFoundException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.toString(), ex.getMessage());
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
     @ExceptionHandler({HabitCreationDeniedException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(HabitCreationDeniedException ex){
+    public ResponseEntity<ErrorResponse> handleHabitCreationDenied(HabitCreationDeniedException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), ex.getMessage());
         return ResponseEntity.badRequest().body(errorResponse);
     }

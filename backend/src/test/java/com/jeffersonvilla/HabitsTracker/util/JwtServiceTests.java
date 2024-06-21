@@ -89,4 +89,12 @@ public class JwtServiceTests {
         assertFalse(mockJwtService.validateToken(token, userDetails));
     }
 
+    @Test
+    void test_ExtractUserId_Success() {
+
+        String token = jwtService.generateToken(username, id);
+        Long actualUserId = jwtService.extractUserId(token);
+        assertEquals(id, actualUserId);
+    }
+
 }

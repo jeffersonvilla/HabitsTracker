@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,10 +15,16 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.jeffersonvilla.HabitsTracker.util.JwtService;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_EXPIRED;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_INVALID_SIGNATURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
@@ -105,6 +112,67 @@ public class JwtAuthenticationFilterTests {
         assertEquals(null, authToken.getCredentials()); 
 
         verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    public void test_ExpiredJwtException() throws ServletException, IOException {
+
+        String expiredJwt = "expired_jwt_token";
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + expiredJwt);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+        
+        when(jwtService.extractUsername(expiredJwt)).thenThrow(new ExpiredJwtException(null, null, "JWT expired"));
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> {
+            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        });
+
+        assertEquals(JWT_TOKEN_EXPIRED, exception.getMessage());
+    }
+
+    @Test
+    void test_SignatureException() throws ServletException, IOException {
+
+        String expiredJwt = "expired_jwt_token";
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + expiredJwt);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+        
+        // Arrange
+        when(jwtService.extractUsername(anyString())).thenThrow(new SignatureException("JWT signature invalid"));
+
+        // Act & Assert
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> {
+            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        });
+
+        assertEquals(JWT_TOKEN_INVALID_SIGNATURE, exception.getMessage());
+    }
+
+    @Test
+    void test_IllegalArgumentException() throws ServletException, IOException {
+
+        String expiredJwt = "expired_jwt_token";
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + expiredJwt);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+        
+        // Arrange
+        when(jwtService.extractUsername(anyString())).thenThrow(new IllegalArgumentException("JWT token compact of handler are invalid"));
+
+        // Act & Assert
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> {
+            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        });
+
+        assertEquals(JWT_TOKEN_INVALID_SIGNATURE, exception.getMessage());
     }
 }
 
