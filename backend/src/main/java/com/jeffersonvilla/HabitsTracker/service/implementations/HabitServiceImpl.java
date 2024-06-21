@@ -1,6 +1,7 @@
 package com.jeffersonvilla.HabitsTracker.service.implementations;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
@@ -67,9 +69,23 @@ public class HabitServiceImpl implements HabitService{
     }
 
     @Override
-    public List<HabitDto> getAllHabits(long userOptional) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllHabits'");
+    public List<HabitDto> getAllHabits(long userId) {
+        
+        Optional<User> userOptional = userRepo.findById(userId);
+        
+        if(userOptional.isEmpty()){
+            throw new UserNotFoundException(USER_NOT_FOUND);
+        }
+        
+        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!usernameFromToken.equals(userOptional.get().getUsername())) {
+            throw new HabitAccessDeniedException(USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER);
+        }
+
+        List<Habit> habitsFound = habitRepo.findByUser(userOptional.get());
+
+        return habitsFound.stream().map((habit)->mapper.toDto(habit)).toList();
     }
 
     @Override
