@@ -22,7 +22,7 @@ const validationSchema = Yup.object().shape({
     password: Yup.string().required('Password is required'),
 });
 
-const LoginForm = () => {
+const LoginForm = ({ onLogin }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -50,10 +50,11 @@ const LoginForm = () => {
             if (response.status === 200) {
                 const jwt = await response.text(); 
                 console.log('Login successful!', jwt);
+                localStorage.setItem('jwt', jwt);
                 setSnackbarMessage('Login successful!');
                 setSnackbarOpen(true);
                 reset();
-                // Handle successful login (save JWT, redirect to dashboard)
+                onLogin();
             } else if (response.status === 400) {
                 const responseData = await response.json(); 
                 throw new Error(responseData.message || 'Login failed');
