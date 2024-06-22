@@ -19,7 +19,7 @@ import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
-import com.jeffersonvilla.HabitsTracker.exceptions.handler.GlobalExceptionHandler.ErrorResponse;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
 
 public class GlobalExceptionHandlerTests {
     
@@ -129,5 +129,18 @@ public class GlobalExceptionHandlerTests {
 
         assertEquals("503", errorResponse.getStatus());
         assertEquals("Service Unavailable", errorResponse.getMessage());
+    }
+
+    @Test
+    void test_handleHabitNotFound(){
+        
+        String message = "message";
+
+        HabitNotFoundException ex = new HabitNotFoundException(message);
+
+        ResponseEntity<ErrorResponse> errorResponse = globalExceptionHandler.handleHabitNotFound(ex);
+
+        assertEquals(HttpStatus.NOT_FOUND.toString(), errorResponse.getBody().getStatus());
+        assertEquals(message, errorResponse.getBody().getMessage());
     }
 }   

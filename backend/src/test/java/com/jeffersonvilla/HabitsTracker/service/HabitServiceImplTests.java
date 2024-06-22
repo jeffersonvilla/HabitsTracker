@@ -1,6 +1,8 @@
 package com.jeffersonvilla.HabitsTracker.service;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_NOT_FOUND;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABIT;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
@@ -8,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +33,7 @@ import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.Habit;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
@@ -267,4 +271,107 @@ public class HabitServiceImplTests {
         verify(mapper, times(habitsFound.size())).toDto(any());
 
     }
+
+    @Test
+    public void getHabit_userNotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+        UserNotFoundException exceptionThrown = assertThrows(
+            UserNotFoundException.class,
+            () -> {
+                habitService.getHabit(1L);
+            }    
+        );
+
+        assertEquals(USER_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo, times(0)).findById(anyLong());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void getHabit_habitById_NotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.empty());
+
+        HabitNotFoundException exceptionThrown = assertThrows(
+            HabitNotFoundException.class,
+            () -> {
+                habitService.getHabit(1L);
+            }    
+        );
+
+        assertEquals(HABIT_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    /**
+     * When the user found in the database (by the username contained in the jwt) and
+     * the user in the habit (found by the habitId passed as argument) 
+     * are different 
+     * */
+    @Test
+    public void getHabit_DeniedAccess(){
+
+        User user = new User(2L, "otherUser", "other@email", "password", true);
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.of(habit));
+
+        HabitAccessDeniedException exceptionThrown = assertThrows(
+            HabitAccessDeniedException.class,
+            () -> {
+                habitService.getHabit(1L);
+            }    
+        );
+
+        assertEquals(USER_NOT_AUTORIZED_ACCESS_HABIT, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void getHabit_success(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.of(habit));
+
+        when(mapper.toDto(any())).thenReturn(dto);
+
+        HabitDto resultHabitDto = habitService.getHabit(1L);
+
+        assertEquals(dto, resultHabitDto);
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(mapper).toDto(any());
+
+    }
+
 }

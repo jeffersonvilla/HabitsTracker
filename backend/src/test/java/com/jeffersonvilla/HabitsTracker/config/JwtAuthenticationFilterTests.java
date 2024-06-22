@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.AccessDeniedException;
@@ -13,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jeffersonvilla.HabitsTracker.exceptions.handler.ErrorResponse;
 import com.jeffersonvilla.HabitsTracker.util.JwtService;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -21,7 +24,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_EXPIRED;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_INVALID_SIGNATURE;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.JWT_TOKEN_NOT_VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -125,12 +128,12 @@ public class JwtAuthenticationFilterTests {
         FilterChain filterChain = mock(FilterChain.class);
         
         when(jwtService.extractUsername(expiredJwt)).thenThrow(new ExpiredJwtException(null, null, "JWT expired"));
+        
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> {
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-        });
-
-        assertEquals(JWT_TOKEN_EXPIRED, exception.getMessage());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatus());
+        String expectedResponse = new ObjectMapper().writeValueAsString(new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), JWT_TOKEN_EXPIRED));
+        assertEquals(expectedResponse, response.getContentAsString());
     }
 
     @Test
@@ -147,11 +150,11 @@ public class JwtAuthenticationFilterTests {
         when(jwtService.extractUsername(anyString())).thenThrow(new SignatureException("JWT signature invalid"));
 
         // Act & Assert
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> {
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-        });
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
-        assertEquals(JWT_TOKEN_INVALID_SIGNATURE, exception.getMessage());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatus());
+        String expectedResponse = new ObjectMapper().writeValueAsString(new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), JWT_TOKEN_NOT_VALID));
+        assertEquals(expectedResponse, response.getContentAsString());
     }
 
     @Test
@@ -168,11 +171,12 @@ public class JwtAuthenticationFilterTests {
         when(jwtService.extractUsername(anyString())).thenThrow(new IllegalArgumentException("JWT token compact of handler are invalid"));
 
         // Act & Assert
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> {
-            jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
-        });
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        
 
-        assertEquals(JWT_TOKEN_INVALID_SIGNATURE, exception.getMessage());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatus());
+        String expectedResponse = new ObjectMapper().writeValueAsString(new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), JWT_TOKEN_NOT_VALID));
+        assertEquals(expectedResponse, response.getContentAsString());
     }
 }
 

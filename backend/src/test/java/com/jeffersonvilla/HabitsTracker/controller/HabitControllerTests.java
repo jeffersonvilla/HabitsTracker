@@ -44,7 +44,7 @@ public class HabitControllerTests {
     }
 
     @Test
-    public void test_createHabit_sucess(){
+    public void test_createHabit_success(){
 
         when(habitService.createHabit(dtoRequest)).thenReturn(dtoResponse);
 
@@ -57,7 +57,7 @@ public class HabitControllerTests {
     }
 
     @Test
-    public void test_listAllHabits_sucess(){
+    public void test_listAllHabits_success(){
 
         HabitDto habit1 = mock(HabitDto.class);
         HabitDto habit2 = mock(HabitDto.class);
@@ -72,6 +72,22 @@ public class HabitControllerTests {
         assertEquals(resultList, response.getBody());
 
         verify(habitService).getAllHabits(anyLong());
+    }
+
+    @Test
+    public void test_getHabit_success(){
+
+        HabitDto habitDto = mock(HabitDto.class);
+
+        when(habitService.getHabit(anyLong())).thenReturn(habitDto);
+
+        ResponseEntity<HabitDto> reponse = habitController.getHabit(1L);
+
+        assertEquals(HttpStatus.OK, reponse.getStatusCode());
+        assertNotNull(reponse.getBody());
+        assertEquals(habitDto, reponse.getBody());
+
+        verify(habitService).getHabit(anyLong());
     }
 
 }
