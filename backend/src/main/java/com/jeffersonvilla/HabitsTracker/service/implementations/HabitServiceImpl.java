@@ -1,6 +1,8 @@
 package com.jeffersonvilla.HabitsTracker.service.implementations;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_NOT_FOUND;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABIT;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
@@ -16,6 +18,7 @@ import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.Habit;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
@@ -90,8 +93,26 @@ public class HabitServiceImpl implements HabitService{
 
     @Override
     public HabitDto getHabit(long habitId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getHabit'");
+
+        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
+        
+        if(userOptional.isEmpty()){
+            throw new UserNotFoundException(USER_NOT_FOUND);
+        }
+        
+        Optional<Habit> habitFound = habitRepo.findById(habitId);
+
+        if(habitFound.isEmpty()){
+            throw new HabitNotFoundException(HABIT_NOT_FOUND);
+        }
+
+        if (habitFound.get().getUser().getId() != userOptional.get().getId()) {
+            throw new HabitAccessDeniedException(USER_NOT_AUTORIZED_ACCESS_HABIT);
+        }
+
+        return mapper.toDto(habitFound.get());
     }
 
     @Override

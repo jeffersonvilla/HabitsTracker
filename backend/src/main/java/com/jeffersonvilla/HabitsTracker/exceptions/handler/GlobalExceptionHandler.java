@@ -17,6 +17,7 @@ import com.jeffersonvilla.HabitsTracker.exceptions.auth.VerificationTokenNotExis
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,63 +46,34 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.toString(), ex.getMessage());
-        return ResponseEntity.badRequest().body(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({HabitCategoryNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleHabitCategoryNotFound(HabitCategoryNotFoundException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.toString(), ex.getMessage());
-        return ResponseEntity.badRequest().body(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({HabitCreationDeniedException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ErrorResponse> handleHabitCreationDenied(HabitCreationDeniedException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), ex.getMessage());
-        return ResponseEntity.badRequest().body(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler({HabitAccessDeniedException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ErrorResponse> handleHabitAccessDenied(HabitAccessDeniedException ex){
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.toString(), ex.getMessage());
-        return ResponseEntity.badRequest().body(errorResponse);
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    
-    /*@ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        String message = "An unexpected error occurred";
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.toString(), message);
-        return ResponseEntity.internalServerError().body(errorResponse);
-    }*/
-
-
-    static class ErrorResponse {
-        private String status;
-        private String message;
-
-        public ErrorResponse(String status, String message) {
-            this.status = status;
-            this.message = message;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }   
+    @ExceptionHandler({HabitNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ErrorResponse> handleHabitNotFound(HabitNotFoundException ex){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.toString(), ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 }

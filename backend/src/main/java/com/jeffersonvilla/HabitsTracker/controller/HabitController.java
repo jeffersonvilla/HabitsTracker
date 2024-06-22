@@ -43,4 +43,12 @@ public class HabitController {
 
         return new ResponseEntity<List<HabitDto>>(habits, HttpStatus.OK);
     }
+
+    @GetMapping("/{habitId}")
+    public ResponseEntity<HabitDto> getHabit(@PathVariable Long habitId){
+
+        HabitDto habit = habitService.getHabit(habitId);
+
+        return new ResponseEntity<HabitDto>(habit, HttpStatus.OK);
+    }
 }

@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { List, ListItem, ListItemText, Typography, CircularProgress, Container } from '@mui/material';
+import { List, ListItem, ListItemText, Typography, CircularProgress, Container, Button } from '@mui/material';
+import HabitDetail from './HabitDetail';
 
 const HabitList = () => {
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [selectedHabitId, setSelectedHabitId] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserId = () => {
@@ -49,6 +52,16 @@ const HabitList = () => {
     }
   }, [userId]);
 
+  const handleOpenModal = (habitId) => {
+    setSelectedHabitId(habitId);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedHabitId(null);
+  };
+
   if (loading) {
     return <CircularProgress />;
   }
@@ -74,9 +87,19 @@ const HabitList = () => {
                 </>
               }
             />
+            <Button variant="contained" color="primary" onClick={() => handleOpenModal(habit.id)}>
+              View Details
+            </Button>
           </ListItem>
         ))}
       </List>
+      {selectedHabitId && (
+        <HabitDetail
+          habitId={selectedHabitId}
+          open={modalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </Container>
   );
 };
