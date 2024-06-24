@@ -14,5 +14,5 @@ public interface HabitService {
 
     public HabitDto updateHabit(long habitId, HabitDto habitDto);
 
-    public void deletehabit(long id);
+    public void deleteHabit(long id);
 }

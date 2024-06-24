@@ -21,4 +21,6 @@ public class MessageConstants {
     public static final String USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER = "You are not authorized to see the list of habits of this user.";
     public static final String HABIT_NOT_FOUND = "Habit not found for the id";
     public static final String USER_NOT_AUTORIZED_ACCESS_HABIT = "You are not authorized to see this habit.";
+
+    public static final String HABIT_DELETED_SUCCESS = "Habit deleted successfully";
 }
