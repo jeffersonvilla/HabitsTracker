@@ -374,4 +374,184 @@ public class HabitServiceImplTests {
 
     }
 
+    @Test
+    public void updateHabit_userNotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+        UserNotFoundException exceptionThrown = assertThrows(
+            UserNotFoundException.class,
+            () -> {
+                habitService.updateHabit(1L, dto);
+            }    
+        );
+
+        assertEquals(USER_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo, times(0)).findById(anyLong());
+        verify(habitCategoryRepo, times(0)).findById(anyLong());
+        verify(habitRepo, times(0)).save(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void updateHabit_habitById_NotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.empty());
+
+        HabitNotFoundException exceptionThrown = assertThrows(
+            HabitNotFoundException.class,
+            () -> {
+                habitService.updateHabit(1L, dto);
+            }    
+        );
+
+        assertEquals(HABIT_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitCategoryRepo, times(0)).findById(anyLong());
+        verify(habitRepo, times(0)).save(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    /**
+     * When the user found in the database (by the username contained in the jwt) and
+     * the user in the habit (found by the habitId passed as argument) 
+     * are different 
+     * */
+    @Test
+    public void updateHabit_DeniedAccess(){
+
+        User user = new User(2L, "otherUser", "other@email", "password", true);
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.of(habit));
+
+        HabitAccessDeniedException exceptionThrown = assertThrows(
+            HabitAccessDeniedException.class,
+            () -> {
+                habitService.updateHabit(1L, dto);
+            }    
+        );
+
+        assertEquals(USER_NOT_AUTORIZED_ACCESS_HABIT, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitCategoryRepo, times(0)).findById(anyLong());
+        verify(habitRepo, times(0)).save(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void updateHabit_CategoryNotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.of(habit));
+
+        when(habitCategoryRepo.findById(2L)).thenReturn(Optional.empty());
+
+        HabitCategoryNotFoundException exceptionThrown = assertThrows(
+            HabitCategoryNotFoundException.class,
+            () -> {
+                habitService.updateHabit(1L, dto);
+            }    
+        );
+
+        assertEquals(HABIT_CATEGORY_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(habitRepo, times(0)).save(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void updateHabit_success(){
+
+        HabitDto updateDto = new HabitDto();
+        updateDto.setName("Despertar temprano");
+        updateDto.setDescription("Antes de las 9:00 a.m.");
+        updateDto.setTrigger( "Alarma");
+        updateDto.setCategory(2L);
+
+        HabitCategory category2 = new HabitCategory(2L, "Salud", null);
+        Habit habitUpdated = new Habit(1L, "Despertar temprano", "Antes de las 9:00 a.m.", "Alarma", category2, user);
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(1L)).thenReturn(Optional.of(habit));
+
+        when(habitCategoryRepo.findById(2L)).thenReturn(Optional.of(category2));
+
+        when(habitRepo.save(habit)).thenReturn(habitUpdated);
+
+        when(mapper.toDto(habitUpdated)).thenReturn(updateDto);
+
+        HabitDto updatedHabitDto = habitService.updateHabit(1L, updateDto);
+
+        assertEquals(updateDto, updatedHabitDto);
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(habitRepo).save(any());
+        verify(mapper).toDto(any());
+
+    }
+
+    @Test
+    public void updateHabit_success_habitDto_with_nullAttributes(){
+
+        HabitDto updateDto = new HabitDto();
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(1L)).thenReturn(Optional.of(habit));
+
+        when(habitRepo.save(habit)).thenReturn(habit);
+
+        when(mapper.toDto(habit)).thenReturn(dto);
+
+        HabitDto updatedHabitDto = habitService.updateHabit(1L, updateDto);
+
+        assertEquals(dto, updatedHabitDto);
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitCategoryRepo, times(0)).findById(anyLong());
+        verify(habitRepo).save(any());
+        verify(mapper).toDto(any());
+
+    }
+
 }

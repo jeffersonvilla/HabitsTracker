@@ -22,7 +22,7 @@ import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitDto;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.HabitService;
 
 /**
- * Error cases are on the GlobalExcpetionHandler
+ * Error cases are on the GlobalExceptionHandler
  * */
 public class HabitControllerTests {
 
@@ -90,4 +90,19 @@ public class HabitControllerTests {
         verify(habitService).getHabit(anyLong());
     }
 
+    @Test
+    public void test_updateHabit_success(){
+
+        HabitDto habitDto = mock(HabitDto.class);
+
+        when(habitService.updateHabit(anyLong(), any())).thenReturn(habitDto);
+
+        ResponseEntity<HabitDto> reponse = habitController.updateHabit(1L, habitDto);
+
+        assertEquals(HttpStatus.OK, reponse.getStatusCode());
+        assertNotNull(reponse.getBody());
+        assertEquals(habitDto, reponse.getBody());
+
+        verify(habitService).updateHabit(anyLong(), any());
+    }
 }
