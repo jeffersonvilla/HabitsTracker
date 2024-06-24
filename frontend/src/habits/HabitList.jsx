@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import { List, ListItem, ListItemText, Typography, CircularProgress, Container, Button, Box } from '@mui/material';
 import HabitDetail from './HabitDetail';
 import UpdateHabitForm from './UpdateHabitForm';
+import DeleteHabitConfirmation from './DeleteHabitConfirmation';
 
 const HabitList = () => {
   const [habits, setHabits] = useState([]);
@@ -13,6 +14,7 @@ const HabitList = () => {
   const [selectedHabitId, setSelectedHabitId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
   const fetchHabits = useCallback(async () => {
@@ -83,6 +85,35 @@ const HabitList = () => {
     setRefresh(true);
   };
 
+  const handleOpenDeleteDialog = (habitId) => {
+    setSelectedHabitId(habitId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setSelectedHabitId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) {
+      setError("JWT token not found");
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:8080/api/v1/habit/${selectedHabitId}`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      });
+      setDeleteDialogOpen(false);
+      setSelectedHabitId(null);
+      setRefresh(true); // Trigger refresh after deletion
+    } catch (error) {
+      setError(error);
+    }
+  };
+
   if (loading) {
     return <CircularProgress />;
   }
@@ -109,29 +140,37 @@ const HabitList = () => {
               }
             />
             <Box>
+              <Button variant="contained" color="primary" onClick={() => handleOpenModal(habit.id)}>
+                View Details
+              </Button>
               <Button variant="contained" color="primary" onClick={() => handleOpenUpdateModal(habit.id)}>
                 Update Habit
               </Button>
-              <Button variant="contained" color="primary" onClick={() => handleOpenModal(habit.id)}>
-                View Details
-              </Button> 
+              <Button variant="contained" color="secondary" onClick={() => handleOpenDeleteDialog(habit.id)} sx={{ ml: 2 }}>
+                Delete Habit
+              </Button>
             </Box>
           </ListItem>
         ))}
       </List>
       {selectedHabitId && (
-        <HabitDetail
-          habitId={selectedHabitId}
-          open={modalOpen}
-          onClose={handleCloseModal}
-        />
-      )}
-      {selectedHabitId && (
-        <UpdateHabitForm
+        <>
+          <HabitDetail
+            habitId={selectedHabitId}
+            open={modalOpen}
+            onClose={handleCloseModal}
+          />
+          <DeleteHabitConfirmation
+            open={deleteDialogOpen}
+            onClose={handleCloseDeleteDialog}
+            onConfirm={handleConfirmDelete}
+          />
+          <UpdateHabitForm
           habitId={selectedHabitId}
           open={updateModalOpen}
           onClose={handleCloseUpdateModal}
         />
+        </>
       )}
     </Container>
   );
