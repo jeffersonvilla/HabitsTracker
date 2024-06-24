@@ -6,6 +6,7 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -552,6 +553,30 @@ public class HabitServiceImplTests {
         verify(habitRepo).save(any());
         verify(mapper).toDto(any());
 
+    }
+
+    /**
+     * The user validations are tested on getHabit_X tests 
+     * beacuase deleteHabit and getHabit both use "private Habit getHabitById(id)" from the
+     * HabitServiceImpl class 
+     */
+    @Test
+    public void deleteHabit_success(){
+        
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.of(habit));
+
+        assertDoesNotThrow(() -> {
+            habitService.deleteHabit(1L);
+        });
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitRepo).delete(any());
     }
 
 }
