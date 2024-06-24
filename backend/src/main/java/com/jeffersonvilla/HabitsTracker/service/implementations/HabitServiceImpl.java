@@ -93,32 +93,40 @@ public class HabitServiceImpl implements HabitService{
 
     @Override
     public HabitDto getHabit(long habitId) {
-
-        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-        
-        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
-        
-        if(userOptional.isEmpty()){
-            throw new UserNotFoundException(USER_NOT_FOUND);
-        }
-        
-        Optional<Habit> habitFound = habitRepo.findById(habitId);
-
-        if(habitFound.isEmpty()){
-            throw new HabitNotFoundException(HABIT_NOT_FOUND);
-        }
-
-        if (habitFound.get().getUser().getId() != userOptional.get().getId()) {
-            throw new HabitAccessDeniedException(USER_NOT_AUTORIZED_ACCESS_HABIT);
-        }
-
-        return mapper.toDto(habitFound.get());
+        return mapper.toDto(getHabitById(habitId));
     }
 
     @Override
     public HabitDto updateHabit(long habitId, HabitDto habitDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateHabit'");
+        
+        Habit habitFound = getHabitById(habitId);
+
+        if(habitDto.getName() != null && !habitDto.getName().isBlank()){
+            habitFound.setName(habitDto.getName());
+        }
+
+        if(habitDto.getDescription() != null){
+            habitFound.setDescription(habitDto.getDescription());
+        }
+
+        if(habitDto.getTrigger() != null){
+            habitFound.setTrigger(habitDto.getTrigger());
+        }
+
+        if(habitDto.getCategory() != null){
+
+            Optional<HabitCategory> category = categoryRepo.findById(habitDto.getCategory());
+            
+            if(category.isEmpty()){
+                throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
+            }
+
+            habitFound.setCategory(category.get());
+
+        }
+
+        return mapper.toDto(habitRepo.save(habitFound));
+
     }
 
     @Override
@@ -127,4 +135,30 @@ public class HabitServiceImpl implements HabitService{
         throw new UnsupportedOperationException("Unimplemented method 'deletehabit'");
     }
     
+    /**
+     * Verifies that the habit that is being requested belongs to the user signed in the jwt
+     * and returns the habit or throws the corresponding exceptions
+     */
+    private Habit getHabitById(long habitId){
+        
+        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        
+        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
+        
+        if(userOptional.isEmpty()){
+            throw new UserNotFoundException(USER_NOT_FOUND);
+        }
+        
+        Optional<Habit> habitOptional = habitRepo.findById(habitId);
+
+        if(habitOptional.isEmpty()){
+            throw new HabitNotFoundException(HABIT_NOT_FOUND);
+        }
+
+        if (habitOptional.get().getUser().getId() != userOptional.get().getId()) {
+            throw new HabitAccessDeniedException(USER_NOT_AUTORIZED_ACCESS_HABIT);
+        }
+        
+        return habitOptional.get();
+    }
 }

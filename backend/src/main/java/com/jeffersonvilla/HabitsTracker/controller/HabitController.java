@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,10 @@ import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitDto;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.HabitService;
 
 import jakarta.validation.Valid;
+
+/**
+ * Error Responses are on the GlobalExceptionHandler
+ */
 
 @RestController
 @RequestMapping("/api/v1/habit")
@@ -48,6 +53,15 @@ public class HabitController {
     public ResponseEntity<HabitDto> getHabit(@PathVariable Long habitId){
 
         HabitDto habit = habitService.getHabit(habitId);
+
+        return new ResponseEntity<HabitDto>(habit, HttpStatus.OK);
+    }
+
+    @PutMapping("/{habitId}")
+    public ResponseEntity<HabitDto> updateHabit(@PathVariable Long habitId, 
+        @RequestBody HabitDto habitDto){
+
+        HabitDto habit = habitService.updateHabit(habitId, habitDto);
 
         return new ResponseEntity<HabitDto>(habit, HttpStatus.OK);
     }
