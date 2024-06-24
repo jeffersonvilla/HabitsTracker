@@ -130,9 +130,8 @@ public class HabitServiceImpl implements HabitService{
     }
 
     @Override
-    public void deletehabit(long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deletehabit'");
+    public void deleteHabit(long id) {
+        habitRepo.delete(getHabitById(id));
     }
     
     /**

@@ -1,10 +1,13 @@
 package com.jeffersonvilla.HabitsTracker.controller;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_DELETED_SUCCESS;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,4 +68,12 @@ public class HabitController {
 
         return new ResponseEntity<HabitDto>(habit, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{habitId}")
+    public ResponseEntity<String> deleteHabit(@PathVariable Long habitId){
+
+    habitService.deleteHabit(habitId);
+
+    return new ResponseEntity<String>(HABIT_DELETED_SUCCESS, HttpStatus.OK);
+}
 }

@@ -1,5 +1,6 @@
 package com.jeffersonvilla.HabitsTracker.controller;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_DELETED_SUCCESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -104,5 +105,17 @@ public class HabitControllerTests {
         assertEquals(habitDto, reponse.getBody());
 
         verify(habitService).updateHabit(anyLong(), any());
+    }
+
+    @Test
+    public void test_deleteHabit_success(){
+
+        ResponseEntity<String> reponse = habitController.deleteHabit(1L);
+
+        assertEquals(HttpStatus.OK, reponse.getStatusCode());
+        assertNotNull(reponse.getBody());
+        assertEquals(HABIT_DELETED_SUCCESS, reponse.getBody());
+
+        verify(habitService).deleteHabit(anyLong());
     }
 }
