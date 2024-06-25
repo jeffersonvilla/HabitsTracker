@@ -40,6 +40,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/v1/auth/**").permitAll()
 						.requestMatchers("/api/v1/test/**").authenticated()
 						.requestMatchers("/api/v1/habit/**").authenticated()
+						.requestMatchers("/api/v1/habit-category/**").authenticated()
 						.anyRequest().permitAll()
 						)
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
