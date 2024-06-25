@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Modal, Box, TextField, Button, CircularProgress, Alert } from '@mui/material';
+import { Modal, Box, TextField, Button, CircularProgress, Alert, MenuItem } from '@mui/material';
+import CategoryCreationDialog from './CategoryCreationDialog';
 
 const style = {
     position: 'absolute',
@@ -14,6 +15,12 @@ const style = {
     p: 4,
 };
 
+const defaultCategories = [
+    { id: 1, name: 'Health' },
+    { id: 2, name: 'Productivity' },
+    { id: 3, name: 'Hobby' }
+];
+
 const UpdateHabitForm = ({ habitId, open, onClose }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,6 +30,9 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
         trigger: '',
         category: '',
     });
+
+    const [categories, setCategories] = useState(defaultCategories);
+    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);  
 
     useEffect(() => {
         const fetchHabitDetails = async () => {
@@ -45,6 +55,10 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
                     trigger: response.data.trigger,
                     category: response.data.category,
                 });
+                /*const categoryResponse = await axios.get('http://localhost:8080/api/v1/category', {
+                    headers: { Authorization: `Bearer ${jwt}` },
+                  });
+                setCategories(categoryResponse.data);*/
                 setLoading(false);
             } catch (error) {
                 setError(error);
@@ -79,6 +93,19 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
         } catch (error) {
             setError(error.response?.data?.message || "Error updating habit");
         }
+    };
+
+    const handleOpenCategoryDialog = () => {
+        setCategoryDialogOpen(true);
+    };
+    
+    const handleCloseCategoryDialog = () => {
+        setCategoryDialogOpen(false);
+    };
+
+    const handleCategoryCreated = (newCategory) => {
+        setCategories([...categories, newCategory]);
+        setFormValues({ ...formValues, category: newCategory.id });
     };
 
     if (!open) {
@@ -119,19 +146,34 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
                                 margin="normal"
                             />
                             <TextField
+                                select
                                 label="Category"
                                 name="category"
                                 value={formValues.category}
                                 onChange={handleInputChange}
                                 fullWidth
                                 margin="normal"
-                            />
+                            >
+                                {categories.map((category) => (
+                                  <MenuItem key={category.id} value={category.id}>
+                                    {category.name}
+                                  </MenuItem>
+                                ))}
+                            </TextField>
+                            <Button variant="contained" onClick={handleOpenCategoryDialog} sx={{ mb: 2 }}>
+                                Create New Category
+                            </Button>
                             <Button type="submit" variant="contained" color="primary" fullWidth>
                                 Update Habit
                             </Button>
                         </form>
                     </>
                 )}
+                <CategoryCreationDialog
+                    open={categoryDialogOpen}
+                    onClose={handleCloseCategoryDialog}
+                    onCategoryCreated={handleCategoryCreated}
+                />
             </Box>
         </Modal>
     );

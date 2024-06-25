@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { TextField, Button, Container, Typography, Box, Alert, Snackbar } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Alert, Snackbar, MenuItem } from '@mui/material';
+import CategoryCreationDialog from './CategoryCreationDialog';
+
+const defaultCategories = [
+    { id: 1, name: 'Health' },
+    { id: 2, name: 'Productivity' },
+    { id: 3, name: 'Hobby' }
+];
 
 const CreateHabitForm = () => {
     const [habit, setHabit] = useState({
@@ -15,6 +22,8 @@ const CreateHabitForm = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [userId, setUserId] = useState(null);
+    const [categories, setCategories] = useState(defaultCategories);
+    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
     useEffect(() => {
         const jwt = localStorage.getItem('jwt');
@@ -23,6 +32,30 @@ const CreateHabitForm = () => {
             setUserId(decoded.userId);
         }
     }, []);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const jwt = localStorage.getItem('jwt');
+            if (!jwt) {
+                setSnackbarMessage("JWT token not found");
+                setSnackbarOpen(true);
+                return;
+            }
+
+            try {
+                const response = await axios.get('http://localhost:8080/api/v1/category', {
+                    headers: { Authorization: `Bearer ${jwt}` },
+                });
+                setCategories(response.data);
+            } catch (error) {
+                setSnackbarMessage("Error fetching categories");
+                setSnackbarOpen(true);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -34,6 +67,19 @@ const CreateHabitForm = () => {
 
     const handleCloseSnackbar = () => {
         setSnackbarOpen(false);
+    };
+
+    const handleOpenCategoryDialog = () => {
+        setCategoryDialogOpen(true);
+    };
+
+    const handleCloseCategoryDialog = () => {
+        setCategoryDialogOpen(false);
+    };
+
+    const handleCategoryCreated = (newCategory) => {
+        setCategories([...categories, newCategory]);
+        setHabit({ ...habit, category: newCategory.id });
     };
 
     const handleSubmit = async (e) => {
@@ -112,6 +158,7 @@ const CreateHabitForm = () => {
                         helperText={errors.trigger}
                     />
                     <TextField
+                        select
                         fullWidth
                         label="Category"
                         name="category"
@@ -119,10 +166,23 @@ const CreateHabitForm = () => {
                         onChange={handleChange}
                         required
                         margin="normal"
-                        type="number"
                         error={!!errors.category}
                         helperText={errors.category}
-                    />
+                    >
+                        {categories.map((category) => (
+                            <MenuItem key={category.id} value={category.id}>
+                                {category.name}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                        <Button variant="contained" onClick={handleOpenCategoryDialog} sx={{ mb: 2 }}>
+                            Create New Category
+                        </Button>
+                        <Button variant="contained" color="primary" type="submit" sx={{ mt: 2 }}>
+                            Create Habit
+                        </Button>
+                    </Box>
                     {Object.keys(errors).length > 0 && (
                         <Alert severity="error" sx={{ mt: 2 }}>
                             {Object.values(errors).map((err, index) => (
@@ -130,9 +190,7 @@ const CreateHabitForm = () => {
                             ))}
                         </Alert>
                     )}
-                    <Button variant="contained" color="primary" type="submit" sx={{ mt: 2 }}>
-                        Create Habit
-                    </Button>
+                    
                 </form>
                 <Snackbar
                     open={snackbarOpen}
@@ -145,7 +203,11 @@ const CreateHabitForm = () => {
                         {snackbarMessage}
                     </Alert>
                 </Snackbar>
-
+                <CategoryCreationDialog
+                    open={categoryDialogOpen}
+                    onClose={handleCloseCategoryDialog}
+                    onCategoryCreated={handleCategoryCreated}
+                />
             </Box>
         </Container>
     );
