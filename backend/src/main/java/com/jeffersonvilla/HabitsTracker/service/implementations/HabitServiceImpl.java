@@ -5,6 +5,7 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABIT;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 
 import java.util.List;
@@ -66,6 +67,12 @@ public class HabitServiceImpl implements HabitService{
             throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
         }
 
+        if(category.get().getUser()!= null && 
+            category.get().getUser().getId() != userOptional.get().getId()){
+
+            throw new HabitCreationDeniedException(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY);
+        }
+
         Habit habitToSave = new Habit(habitDto.getName(), habitDto.getDescription(), habitDto.getTrigger(), category.get(), userOptional.get());
 
         return mapper.toDto(habitRepo.save(habitToSave));
@@ -119,6 +126,16 @@ public class HabitServiceImpl implements HabitService{
             
             if(category.isEmpty()){
                 throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
+            }
+
+            String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+            
+            Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
+
+            if(category.get().getUser()!= null &&
+                category.get().getUser().getId() != userOptional.get().getId()){
+                    
+                throw new HabitCreationDeniedException(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY);
             }
 
             habitFound.setCategory(category.get());
