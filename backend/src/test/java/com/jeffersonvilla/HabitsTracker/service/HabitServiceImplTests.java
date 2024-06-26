@@ -2,9 +2,9 @@ package com.jeffersonvilla.HabitsTracker.service;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_NOT_FOUND;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABIT;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_ACCESS_HABIT;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_ACCESS_HABITS_FOR_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -129,7 +129,7 @@ public class HabitServiceImplTests {
                 habitService.createHabit(dto);
             });
 
-        assertEquals(USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER, exceptionThrown.getMessage());
+        assertEquals(USER_NOT_AUTHORIZED_TO_CREATE_HABIT_FOR_USER, exceptionThrown.getMessage());
 
         verify(userRepo).findById(anyLong());
         verify(securityContext).getAuthentication();
@@ -231,7 +231,7 @@ public class HabitServiceImplTests {
                 habitService.getAllHabits(user.getId());
             });
 
-        assertEquals(USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER, exceptionThrown.getMessage());
+        assertEquals(USER_NOT_AUTHORIZED_ACCESS_HABITS_FOR_USER, exceptionThrown.getMessage());
 
         verify(userRepo).findById(anyLong());
         verify(securityContext).getAuthentication();
@@ -344,7 +344,7 @@ public class HabitServiceImplTests {
             }    
         );
 
-        assertEquals(USER_NOT_AUTORIZED_ACCESS_HABIT, exceptionThrown.getMessage());
+        assertEquals(USER_NOT_AUTHORIZED_ACCESS_HABIT, exceptionThrown.getMessage());
 
         verify(authentication).getName();
         verify(userRepo).findByUsername(anyString());
@@ -450,7 +450,7 @@ public class HabitServiceImplTests {
             }    
         );
 
-        assertEquals(USER_NOT_AUTORIZED_ACCESS_HABIT, exceptionThrown.getMessage());
+        assertEquals(USER_NOT_AUTHORIZED_ACCESS_HABIT, exceptionThrown.getMessage());
 
         verify(authentication).getName();
         verify(userRepo).findByUsername(anyString());
