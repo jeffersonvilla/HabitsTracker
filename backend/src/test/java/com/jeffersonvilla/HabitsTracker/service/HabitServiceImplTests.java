@@ -5,6 +5,7 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_ACCESS_HABIT;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_ACCESS_HABITS_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_TO_CREATE_HABIT_FOR_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,6 +33,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
@@ -156,6 +158,36 @@ public class HabitServiceImplTests {
             });
 
         assertEquals(HABIT_CATEGORY_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(userRepo).findById(anyLong());
+        verify(securityContext).getAuthentication();
+        verify(authentication).getName();
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(habitRepo, times(0)).save(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    
+    @Test
+    public void createHabit_NotAuthorized_toUse_habitCategory(){
+
+        HabitCategory category = new HabitCategory(1L, "habitCategoryTest", 
+            new User(4L, "testUser", "test@email", "password", true));
+
+        when(userRepo.findById(dto.getUser())).thenReturn(Optional.of(user));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(habitCategoryRepo.findById(dto.getCategory())).thenReturn(Optional.of(category));
+
+        HabitCreationDeniedException exceptionThrown = assertThrows(
+            HabitCreationDeniedException.class,
+            () -> {
+                habitService.createHabit(dto);
+            });
+
+        assertEquals(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY, exceptionThrown.getMessage());
 
         verify(userRepo).findById(anyLong());
         verify(securityContext).getAuthentication();
@@ -480,6 +512,38 @@ public class HabitServiceImplTests {
         );
 
         assertEquals(HABIT_CATEGORY_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitRepo).findById(anyLong());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(habitRepo, times(0)).save(any());
+        verify(mapper, times(0)).toDto(any());
+
+    }
+
+    @Test
+    public void updateHabit_HabitCategoryAccessDenied(){
+
+        HabitCategory category = new HabitCategory(1L, "habitCategoryTest", 
+            new User(4L, "testUser", "test@email", "password", true));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitRepo.findById(anyLong())).thenReturn(Optional.of(habit));
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(category));
+
+        HabitCategoryAccessDeniedException exceptionThrown = assertThrows(
+            HabitCategoryAccessDeniedException.class,
+            () -> {
+                habitService.updateHabit(1L, dto);
+            }    
+        );
+
+        assertEquals(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY, exceptionThrown.getMessage());
 
         verify(authentication).getName();
         verify(userRepo).findByUsername(anyString());

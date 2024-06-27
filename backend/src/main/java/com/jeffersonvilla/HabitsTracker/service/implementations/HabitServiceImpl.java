@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
@@ -128,14 +129,10 @@ public class HabitServiceImpl implements HabitService{
                 throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
             }
 
-            String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-            
-            Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
-
             if(category.get().getUser()!= null &&
-                category.get().getUser().getId() != userOptional.get().getId()){
+                category.get().getUser().getId() != habitFound.getUser().getId()){
                     
-                throw new HabitCreationDeniedException(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY);
+                throw new HabitCategoryAccessDeniedException(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY);
             }
 
             habitFound.setCategory(category.get());
