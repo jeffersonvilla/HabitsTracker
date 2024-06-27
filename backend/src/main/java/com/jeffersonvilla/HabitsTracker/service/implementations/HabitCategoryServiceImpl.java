@@ -1,6 +1,8 @@
 package com.jeffersonvilla.HabitsTracker.service.implementations;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 
 import java.util.List;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitCategoryDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
 import com.jeffersonvilla.HabitsTracker.model.User;
@@ -37,13 +40,7 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
     @Override
     public HabitCategoryDto createHabitCategory(HabitCategoryDto dto) {
         
-        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
-        
-        if(userOptional.isEmpty()){
-            throw new UserNotFoundException(USER_NOT_FOUND);
-        }
+        Optional<User> userOptional = getUserFromJWT();
         
         HabitCategory category = mapper.fromDto(dto);
         category.setUser(userOptional.get());
@@ -55,13 +52,7 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
     @Override
     public List<HabitCategoryDto> getAllHabitCategories(Long userId) {
 
-        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
-        
-        if(userOptional.isEmpty()){
-            throw new UserNotFoundException(USER_NOT_FOUND);
-        }
+        Optional<User> userOptional = getUserFromJWT();
 
         if(userOptional.get().getId() != userId){
             throw new HabitCategoryAccessDeniedException(NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER);
@@ -73,8 +64,22 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
 
     @Override
     public HabitCategoryDto getHabitCategory(Long categoryId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getHabitCategory'");
+        
+        Optional<User> userOptional = getUserFromJWT();
+
+        Optional<HabitCategory> categoryFound = habitCategoryRepo.findById(categoryId);
+
+        if(categoryFound.isEmpty()){
+            throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
+        }
+
+        if(categoryFound.get().getUser() != null 
+            && categoryFound.get().getUser().getId() != userOptional.get().getId()){
+
+            throw new HabitCategoryAccessDeniedException(NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY);
+        }
+
+        return mapper.toDto(categoryFound.get());
     }
 
     @Override
@@ -87,6 +92,19 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
     public void deleteHabitCategory(Long categoryId) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'deleteHabitCategory'");
+    }
+
+    private Optional<User> getUserFromJWT(){
+
+        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
+        
+        if(userOptional.isEmpty()){
+            throw new UserNotFoundException(USER_NOT_FOUND);
+        }
+
+        return userOptional;
     }
     
 }

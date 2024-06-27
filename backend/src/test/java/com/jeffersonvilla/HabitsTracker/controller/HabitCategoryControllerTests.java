@@ -71,4 +71,18 @@ public class HabitCategoryControllerTests {
 
         verify(habitCategoryService).getAllHabitCategories(anyLong());
     }
+
+    @Test
+    public void test_getHabitCategory(){
+        
+        when(habitCategoryService.getHabitCategory(anyLong())).thenReturn(responseDto);
+
+        ResponseEntity<HabitCategoryDto> response = 
+            habitCategoryController.getHabitCategory(1L);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        verify(habitCategoryService).getHabitCategory(anyLong());
+    }
 }

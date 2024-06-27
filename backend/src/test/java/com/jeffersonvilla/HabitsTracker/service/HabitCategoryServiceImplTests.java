@@ -1,6 +1,8 @@
 package com.jeffersonvilla.HabitsTracker.service;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitCategoryDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.mapper.HabitCategoryMapper;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
 import com.jeffersonvilla.HabitsTracker.model.User;
@@ -71,7 +74,7 @@ public class HabitCategoryServiceImplTests {
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         user = new User(1L, USERNAME, "test@email", "password", true);
-        habitCategoryNoUser = new HabitCategory(2L, "tesCategoryNoUser", null);
+        habitCategoryNoUser = new HabitCategory(2L, "tesCategory", null);
         requestDto = new HabitCategoryDto("testCategory");
         responseDto = new HabitCategoryDto(1L, "testCategory");
     }
@@ -201,6 +204,129 @@ public class HabitCategoryServiceImplTests {
         verify(habitCategoryRepo).findHabitCategoriesByUser(any());
         verify(mapper, times(categoriesDtoExpected.size())).toDto(any());
 
+    }
+    
+    @Test
+    public void getHabitCategory_UserNotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+        UserNotFoundException exceptionThrown = assertThrows(
+            UserNotFoundException.class,    
+            () -> {
+                habitCategoryService.getHabitCategory(1L);
+            }
+        );
+
+        assertEquals(USER_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo, times(0)).findById(anyLong());
+        verify(mapper, times(0)).toDto(any());
+
     } 
+
+    @Test
+    public void getHabitCategory_Category_NotFound(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.empty());
+
+        HabitCategoryNotFoundException exceptionThrown = assertThrows(
+            HabitCategoryNotFoundException.class,    
+            () -> {
+                habitCategoryService.getHabitCategory(1L); 
+            }
+        );
+
+        assertEquals(HABIT_CATEGORY_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(mapper, times(0)).toDto(any());
+
+    } 
+
+    @Test
+    public void getHabitCategory_User_NotAuthorized(){
+
+        HabitCategory categoryWithUser = new HabitCategory(2L, "testCategoryWithUser", 
+            new User(3L, "testUser", "testUser@email", "password", true));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(categoryWithUser));
+
+        HabitCategoryAccessDeniedException exceptionThrown = assertThrows(
+            HabitCategoryAccessDeniedException.class,    
+            () -> {
+                habitCategoryService.getHabitCategory(2L);
+            }
+        );
+
+        assertEquals(NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY, exceptionThrown.getMessage());
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(mapper, times(0)).toDto(any());
+
+    } 
+
+    @Test
+    public void getHabitCategory_success_CategoryWithNullUser(){
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(habitCategoryNoUser));
+        
+        when(mapper.toDto(any())).thenReturn(responseDto);
+
+        HabitCategoryDto resultCategoryDto = habitCategoryService.getHabitCategory(1L);
+
+        assertEquals(responseDto, resultCategoryDto);
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(mapper).toDto(any());
+    } 
+
+    @Test
+    public void getHabitCategory_success_withUser(){
+
+        HabitCategory categoryWithUser = new HabitCategory(2L, "testCategoryWithUser", user);
+
+        HabitCategoryDto responseDto = new HabitCategoryDto(2L, "testCategoryWithUser");
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(categoryWithUser));
+        
+        when(mapper.toDto(any())).thenReturn(responseDto);
+
+        HabitCategoryDto response = habitCategoryService.getHabitCategory(2L);
+
+        assertEquals(responseDto, response);
+
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(mapper).toDto(any());
+
+    }
     
 }

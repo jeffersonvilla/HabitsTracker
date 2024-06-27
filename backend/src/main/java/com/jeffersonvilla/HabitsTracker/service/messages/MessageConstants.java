@@ -26,4 +26,5 @@ public class MessageConstants {
     public static final String HABIT_DELETED_SUCCESS = "Habit deleted successfully";
 
     public static final String NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER = "You are not authorized to see the list of habit categories of this user.";
+    public static final String NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY = "You are not authorized to see this habit category.";
 }

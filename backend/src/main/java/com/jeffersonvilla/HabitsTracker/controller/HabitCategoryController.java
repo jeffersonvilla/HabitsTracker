@@ -55,4 +55,15 @@ public class HabitCategoryController {
         List<HabitCategoryDto> categories = habitCategoryService.getAllHabitCategories(userId);
         return new ResponseEntity<List<HabitCategoryDto>>(categories, HttpStatus.OK);
     }
+
+    @Operation(summary = "Get habit category by Id", 
+        description = "Returns the habit category for a given ID")
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<HabitCategoryDto> getHabitCategory(
+            @Parameter(description = "ID of the habit category to fetch") 
+            @PathVariable Long categoryId) {
+
+        HabitCategoryDto category = habitCategoryService.getHabitCategory(categoryId);
+        return new ResponseEntity<HabitCategoryDto>(category, HttpStatus.OK);
+    }
 }
