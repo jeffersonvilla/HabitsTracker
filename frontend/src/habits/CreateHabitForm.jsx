@@ -4,12 +4,6 @@ import { jwtDecode } from 'jwt-decode';
 import { TextField, Button, Container, Typography, Box, Alert, Snackbar, MenuItem } from '@mui/material';
 import CategoryCreationDialog from './CategoryCreationDialog';
 
-const defaultCategories = [
-    { id: 1, name: 'Health' },
-    { id: 2, name: 'Productivity' },
-    { id: 3, name: 'Hobby' }
-];
-
 const CreateHabitForm = () => {
     const [habit, setHabit] = useState({
         name: '',
@@ -22,7 +16,7 @@ const CreateHabitForm = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [userId, setUserId] = useState(null);
-    const [categories, setCategories] = useState(defaultCategories);
+    const [categories, setCategories] = useState([]);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
     useEffect(() => {
@@ -34,27 +28,29 @@ const CreateHabitForm = () => {
     }, []);
 
     useEffect(() => {
-        const fetchCategories = async () => {
-            const jwt = localStorage.getItem('jwt');
-            if (!jwt) {
-                setSnackbarMessage("JWT token not found");
-                setSnackbarOpen(true);
-                return;
-            }
+        if (userId) {
+            const fetchCategories = async () => {
+                const jwt = localStorage.getItem('jwt');
+                if (!jwt) {
+                    setSnackbarMessage("JWT token not found");
+                    setSnackbarOpen(true);
+                    return;
+                }
 
-            try {
-                const response = await axios.get('http://localhost:8080/api/v1/category', {
-                    headers: { Authorization: `Bearer ${jwt}` },
-                });
-                setCategories(response.data);
-            } catch (error) {
-                setSnackbarMessage("Error fetching categories");
-                setSnackbarOpen(true);
-            }
-        };
+                try {
+                    const response = await axios.get(`http://localhost:8080/api/v1/habit-category/user/${userId}`, {
+                        headers: { Authorization: `Bearer ${jwt}` },
+                    });
+                    setCategories(response.data);
+                } catch (error) {
+                    setSnackbarMessage("Error fetching categories");
+                    setSnackbarOpen(true);
+                }
+            };
 
-        fetchCategories();
-    }, []);
+            fetchCategories();
+        }
+    }, [userId]);
 
 
     const handleChange = (e) => {

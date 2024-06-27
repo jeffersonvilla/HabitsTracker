@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { Modal, Box, TextField, Button, CircularProgress, Alert, MenuItem } from '@mui/material';
 import CategoryCreationDialog from './CategoryCreationDialog';
 
@@ -15,12 +16,6 @@ const style = {
     p: 4,
 };
 
-const defaultCategories = [
-    { id: 1, name: 'Health' },
-    { id: 2, name: 'Productivity' },
-    { id: 3, name: 'Hobby' }
-];
-
 const UpdateHabitForm = ({ habitId, open, onClose }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,8 +26,17 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
         category: '',
     });
 
-    const [categories, setCategories] = useState(defaultCategories);
+    const [userId, setUserId] = useState(null);
+    const [categories, setCategories] = useState([]);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);  
+
+    useEffect(() => {
+        const jwt = localStorage.getItem('jwt');
+        if (jwt) {
+            const decoded = jwtDecode(jwt);
+            setUserId(decoded.userId);
+        }
+    }, []);
 
     useEffect(() => {
         const fetchHabitDetails = async () => {
@@ -55,10 +59,12 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
                     trigger: response.data.trigger,
                     category: response.data.category,
                 });
-                /*const categoryResponse = await axios.get('http://localhost:8080/api/v1/category', {
-                    headers: { Authorization: `Bearer ${jwt}` },
-                  });
-                setCategories(categoryResponse.data);*/
+                if(userId){
+                    const categoryResponse = await axios.get(`http://localhost:8080/api/v1/habit-category/user/${userId}`, {
+                        headers: { Authorization: `Bearer ${jwt}` },
+                      });
+                    setCategories(categoryResponse.data);
+                }
                 setLoading(false);
             } catch (error) {
                 setError(error);
@@ -67,7 +73,7 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
         };
 
         fetchHabitDetails();
-    }, [habitId]);
+    }, [habitId, userId]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
