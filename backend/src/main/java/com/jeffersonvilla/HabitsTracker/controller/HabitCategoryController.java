@@ -1,9 +1,13 @@
 package com.jeffersonvilla.HabitsTracker.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +17,7 @@ import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitCategoryDto;
 import com.jeffersonvilla.HabitsTracker.service.interfaces.HabitCategoryService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -38,5 +43,16 @@ public class HabitCategoryController {
         return new ResponseEntity<HabitCategoryDto>(
                 habitCategoryService.createHabitCategory(dto),
                 HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "List all habit categories of a user", 
+        description = "Returns a list of all habit categories for a given user ID")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<HabitCategoryDto>> listAllHabitCategories(
+            @Parameter(description = "ID of the user to fetch habit categories for") 
+            @PathVariable Long userId) {
+
+        List<HabitCategoryDto> categories = habitCategoryService.getAllHabitCategories(userId);
+        return new ResponseEntity<List<HabitCategoryDto>>(categories, HttpStatus.OK);
     }
 }

@@ -1,5 +1,6 @@
 package com.jeffersonvilla.HabitsTracker.service.implementations;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitCategoryDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
 import com.jeffersonvilla.HabitsTracker.model.User;
@@ -52,8 +54,21 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
 
     @Override
     public List<HabitCategoryDto> getAllHabitCategories(Long userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllHabitCategories'");
+
+        String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Optional<User> userOptional = userRepo.findByUsername(usernameFromToken);
+        
+        if(userOptional.isEmpty()){
+            throw new UserNotFoundException(USER_NOT_FOUND);
+        }
+
+        if(userOptional.get().getId() != userId){
+            throw new HabitCategoryAccessDeniedException(NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER);
+        }
+        
+        return habitCategoryRepo.findHabitCategoriesByUser(userId)
+            .stream().map((HabitCategory category) -> mapper.toDto(category)).toList();
     }
 
     @Override
