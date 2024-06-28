@@ -49,7 +49,7 @@ const LoginForm = ({ onLogin }) => {
 
             if (response.status === 200) {
                 const jwt = await response.text(); 
-                console.log('Login successful!', jwt);
+                //console.log('Login successful!', jwt);
                 localStorage.setItem('jwt', jwt);
                 setSnackbarMessage('Login successful!');
                 setSnackbarOpen(true);

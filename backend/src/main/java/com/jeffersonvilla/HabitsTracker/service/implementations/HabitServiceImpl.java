@@ -2,9 +2,9 @@ package com.jeffersonvilla.HabitsTracker.service.implementations;
 
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_NOT_FOUND;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABIT;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER;
-import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_ACCESS_HABIT;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_ACCESS_HABITS_FOR_USER;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTHORIZED_TO_CREATE_HABIT_FOR_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 
@@ -59,7 +59,7 @@ public class HabitServiceImpl implements HabitService{
         String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (!usernameFromToken.equals(userOptional.get().getUsername())) {
-            throw new HabitCreationDeniedException(USER_NOT_AUTORIZED_TO_CREATE_HABIT_FOR_USER);
+            throw new HabitCreationDeniedException(USER_NOT_AUTHORIZED_TO_CREATE_HABIT_FOR_USER);
         }
         
         Optional<HabitCategory> category = categoryRepo.findById(habitDto.getCategory());
@@ -91,7 +91,7 @@ public class HabitServiceImpl implements HabitService{
         String usernameFromToken = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (!usernameFromToken.equals(userOptional.get().getUsername())) {
-            throw new HabitAccessDeniedException(USER_NOT_AUTORIZED_ACCESS_HABITS_FOR_USER);
+            throw new HabitAccessDeniedException(USER_NOT_AUTHORIZED_ACCESS_HABITS_FOR_USER);
         }
 
         List<Habit> habitsFound = habitRepo.findByUser(userOptional.get());
@@ -169,7 +169,7 @@ public class HabitServiceImpl implements HabitService{
         }
 
         if (habitOptional.get().getUser().getId() != userOptional.get().getId()) {
-            throw new HabitAccessDeniedException(USER_NOT_AUTORIZED_ACCESS_HABIT);
+            throw new HabitAccessDeniedException(USER_NOT_AUTHORIZED_ACCESS_HABIT);
         }
         
         return habitOptional.get();
