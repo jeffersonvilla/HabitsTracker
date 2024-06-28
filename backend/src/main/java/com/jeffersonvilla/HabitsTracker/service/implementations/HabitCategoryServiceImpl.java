@@ -1,5 +1,6 @@
 package com.jeffersonvilla.HabitsTracker.service.implementations;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.CANT_DELETE_HABIT_CATEGORY_IN_USE;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY;
@@ -9,12 +10,14 @@ import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitCategoryDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryDeniedDeleteException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.mapper.Mapper;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
@@ -111,8 +114,27 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
 
     @Override
     public void deleteHabitCategory(Long categoryId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteHabitCategory'");
+
+        Optional<HabitCategory> categoryFound = habitCategoryRepo.findById(categoryId);
+
+        if(categoryFound.isEmpty()){
+            throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
+        }
+
+        Optional<User> userFromJWT = getUserFromJWT();
+
+        if(categoryFound.get().getUser() == null 
+            || categoryFound.get().getUser().getId() != userFromJWT.get().getId()){
+
+            throw new HabitCategoryAccessDeniedException(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY);
+        }
+
+        try{
+            habitCategoryRepo.delete(categoryFound.get());
+        } catch(DataIntegrityViolationException ex){
+            throw new HabitCategoryDeniedDeleteException(CANT_DELETE_HABIT_CATEGORY_IN_USE);
+        }
+
     }
 
     private Optional<User> getUserFromJWT(){

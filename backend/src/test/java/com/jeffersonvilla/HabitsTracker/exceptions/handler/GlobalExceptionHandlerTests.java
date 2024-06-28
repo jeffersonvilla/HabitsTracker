@@ -18,6 +18,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitAccessDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryDeniedDeleteException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCreationDeniedException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitNotFoundException;
@@ -156,6 +157,22 @@ public class GlobalExceptionHandlerTests {
             globalExceptionHandler.handleHabitCategoryAccessDeniedException(ex);
 
         assertEquals(HttpStatus.UNAUTHORIZED.toString(), errorResponse.getBody().getStatus());
+        assertEquals(message, errorResponse.getBody().getMessage());
+    }
+
+    
+
+    @Test
+    void test_handleHabitCategoryDeniedDeleteException(){
+
+        String message = "message";
+
+        HabitCategoryDeniedDeleteException ex = new HabitCategoryDeniedDeleteException(message);
+
+        ResponseEntity<ErrorResponse> errorResponse = 
+            globalExceptionHandler.handleHabitCategoryDeniedDeleteException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST.toString(), errorResponse.getBody().getStatus());
         assertEquals(message, errorResponse.getBody().getMessage());
     }
 }   

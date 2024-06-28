@@ -99,4 +99,15 @@ public class HabitCategoryControllerTests {
 
         verify(habitCategoryService).updateHabitCategory(anyLong(),any());
     }
+
+    @Test
+    public void test_deleteHabitCategory(){
+
+        ResponseEntity<String> response = habitCategoryController.deleteHabitCategory(11L);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        verify(habitCategoryService).deleteHabitCategory(anyLong());
+    }
 }

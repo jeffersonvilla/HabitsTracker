@@ -4,6 +4,8 @@ import { jwtDecode } from 'jwt-decode';
 import { TextField, Button, Container, Typography, Box, Alert, Snackbar, MenuItem, IconButton } from '@mui/material';
 import CategoryCreationDialog from './CategoryCreationDialog';
 import EditIcon from '@mui/icons-material/esm/Edit';
+import DeleteIcon from '@mui/icons-material/esm/Delete';
+import DeleteHabitCategoryConfirmation from './DeleteHabitCategoryConfirmation';
 
 const CreateHabitForm = () => {
     const [habit, setHabit] = useState({
@@ -20,6 +22,8 @@ const CreateHabitForm = () => {
     const [categories, setCategories] = useState([]);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
     const [categoryToUpdate, setCategoryToUpdate] = useState(null);
+    const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState(null);
 
     useEffect(() => {
         const jwt = localStorage.getItem('jwt');
@@ -76,8 +80,18 @@ const CreateHabitForm = () => {
         setCategoryDialogOpen(true);
     };
 
+    const handleOpenDeleteDialog = (category) => {
+        setCategoryToDelete(category);
+        setConfirmationDialogOpen(true);
+    };
+
     const handleCloseCategoryDialog = () => {
         setCategoryDialogOpen(false);
+    };
+
+    const handleCloseConfirmationDialog = () => {
+        setConfirmationDialogOpen(false);
+        setCategoryToDelete(null);
     };
 
     const handleCategoryCreated = (newCategory) => {
@@ -128,6 +142,25 @@ const CreateHabitForm = () => {
                 setSnackbarMessage('An error occurred. Please try again.');
                 setSnackbarOpen(true);
             }
+        }
+    };
+
+    const handleConfirmDelete = async () => {
+        const jwt = localStorage.getItem('jwt');
+        if (!jwt) {
+           // setError("JWT token not found");
+            return;
+        }
+
+        try {
+            await axios.delete(`http://localhost:8080/api/v1/habit-category/${categoryToDelete.categoryId}`, {
+                headers: { Authorization: `Bearer ${jwt}` },
+            });
+            setCategories(categories.filter(category => category.categoryId !== categoryToDelete.categoryId));
+            handleCloseConfirmationDialog();
+        } catch (error) {
+            setSnackbarMessage(error.response?.data?.message || "Error deleting category");
+            setSnackbarOpen(true);
         }
     };
 
@@ -183,10 +216,17 @@ const CreateHabitForm = () => {
                     >
                         {categories.map((category) => (
                             <MenuItem key={category.categoryId} value={category.categoryId}>
-                                {category.name}
-                                <IconButton onClick={() => handleOpenUpdateDialog(category)} size="small" sx={{ ml: 2 }}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                    {category.name}
+                                    <Box>
+                                        <IconButton onClick={() => handleOpenUpdateDialog(category)} size="small" sx={{ ml: 2 }}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleOpenDeleteDialog(category)} size="small" sx={{ ml: 2 }}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+                                </Box>
                             </MenuItem>
                         ))}
                     </TextField>
@@ -224,6 +264,12 @@ const CreateHabitForm = () => {
                     onCategoryCreated={handleCategoryCreated}
                     onCategoryUpdated={handleCategoryUpdated}
                     categoryToUpdate={categoryToUpdate}
+                />
+                <DeleteHabitCategoryConfirmation
+                    open={confirmationDialogOpen}
+                    onClose={handleCloseConfirmationDialog}
+                    onConfirm={handleConfirmDelete}
+                    message={`Are you sure you want to delete the category "${categoryToDelete?.name}"?`}
                 />
             </Box>
         </Container>

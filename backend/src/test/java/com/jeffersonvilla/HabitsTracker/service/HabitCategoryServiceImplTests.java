@@ -1,16 +1,19 @@
 package com.jeffersonvilla.HabitsTracker.service;
 
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.CANT_DELETE_HABIT_CATEGORY_IN_USE;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.jeffersonvilla.HabitsTracker.Dto.Habit.HabitCategoryDto;
 import com.jeffersonvilla.HabitsTracker.exceptions.auth.UserNotFoundException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryAccessDeniedException;
+import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryDeniedDeleteException;
 import com.jeffersonvilla.HabitsTracker.exceptions.habit.HabitCategoryNotFoundException;
 import com.jeffersonvilla.HabitsTracker.mapper.HabitCategoryMapper;
 import com.jeffersonvilla.HabitsTracker.model.HabitCategory;
@@ -460,4 +465,162 @@ public class HabitCategoryServiceImplTests {
         verify(mapper).toDto(any());
 
     }
+
+    @Test
+    public void deleteHabitCategory_categoryNotFound(){
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.empty());
+
+        HabitCategoryNotFoundException exceptionThrown = 
+            assertThrows(HabitCategoryNotFoundException.class,
+            () ->{
+                habitCategoryService.deleteHabitCategory(1L);
+            } 
+        );
+
+        assertEquals(HABIT_CATEGORY_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(authentication, times(0)).getName();
+        verify(userRepo, times(0)).findByUsername(anyString());
+        verify(habitCategoryRepo, times(0)).delete(any());
+
+    }
+
+    @Test
+    public void deleteHabitCategory_userNotFound(){
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(habitCategoryNoUser));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.empty());
+
+        UserNotFoundException exceptionThrown = 
+            assertThrows(UserNotFoundException.class,
+            () ->{
+                habitCategoryService.deleteHabitCategory(1L);
+            } 
+        );
+
+        assertEquals(USER_NOT_FOUND, exceptionThrown.getMessage());
+
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo, times(0)).delete(any());
+
+    }
+
+    @Test
+    public void deleteHabitCategory_categoryNoUser(){
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(habitCategoryNoUser));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        HabitCategoryAccessDeniedException exceptionThrown = 
+            assertThrows(HabitCategoryAccessDeniedException.class,
+            () ->{
+                habitCategoryService.deleteHabitCategory(1L);
+            } 
+        );
+
+        assertEquals(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY, exceptionThrown.getMessage());
+
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo, times(0)).delete(any());
+
+    }
+
+    
+
+    @Test
+    public void deleteHabitCategory_categoryWithUser_AccessDenied(){
+
+        //Different user than the one from authentication mock
+        HabitCategory categoryWithUser = new HabitCategory(4L, "testCategoryWithUser", 
+            new User(4L, "testUser", "test@email", "password", true));
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(categoryWithUser));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        HabitCategoryAccessDeniedException exceptionThrown = 
+            assertThrows(HabitCategoryAccessDeniedException.class,
+            () ->{
+                habitCategoryService.deleteHabitCategory(4L);
+            } 
+        );
+
+        assertEquals(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY, exceptionThrown.getMessage());
+
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo, times(0)).delete(any());
+
+    }
+
+    @Test
+    public void deleteHabitCategory_categoryInUse(){
+
+
+        HabitCategory categoryWithUser = new HabitCategory(4L, "testCategoryWithUser", user);
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(categoryWithUser));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        doThrow(DataIntegrityViolationException.class)
+            .when(habitCategoryRepo).delete(any());
+
+        HabitCategoryDeniedDeleteException exceptionThrown = 
+            assertThrows(HabitCategoryDeniedDeleteException.class,
+            () ->{
+                habitCategoryService.deleteHabitCategory(4L);
+            } 
+        );
+
+        assertEquals(CANT_DELETE_HABIT_CATEGORY_IN_USE, exceptionThrown.getMessage());
+
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo).delete(any());
+
+    }
+
+    @Test
+    public void deleteHabitCategory_success(){
+
+
+        HabitCategory categoryWithUser = new HabitCategory(4L, "testCategoryWithUser", user);
+
+        when(habitCategoryRepo.findById(anyLong())).thenReturn(Optional.of(categoryWithUser));
+
+        when(authentication.getName()).thenReturn(USERNAME);
+
+        when(userRepo.findByUsername(USERNAME)).thenReturn(Optional.of(user));
+
+        assertDoesNotThrow(()->{
+            habitCategoryService.deleteHabitCategory(4L);
+        });
+
+        verify(habitCategoryRepo).findById(anyLong());
+        verify(authentication).getName();
+        verify(userRepo).findByUsername(anyString());
+        verify(habitCategoryRepo).delete(any());
+
+    }
+
+    
 }
