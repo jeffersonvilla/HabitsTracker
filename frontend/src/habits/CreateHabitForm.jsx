@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { TextField, Button, Container, Typography, Box, Alert, Snackbar, MenuItem } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Alert, Snackbar, MenuItem, IconButton } from '@mui/material';
 import CategoryCreationDialog from './CategoryCreationDialog';
+import EditIcon from '@mui/icons-material/esm/Edit';
 
 const CreateHabitForm = () => {
     const [habit, setHabit] = useState({
@@ -18,6 +19,7 @@ const CreateHabitForm = () => {
     const [userId, setUserId] = useState(null);
     const [categories, setCategories] = useState([]);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+    const [categoryToUpdate, setCategoryToUpdate] = useState(null);
 
     useEffect(() => {
         const jwt = localStorage.getItem('jwt');
@@ -68,6 +70,11 @@ const CreateHabitForm = () => {
     const handleOpenCategoryDialog = () => {
         setCategoryDialogOpen(true);
     };
+    
+    const handleOpenUpdateDialog = (category) => {
+        setCategoryToUpdate(category);
+        setCategoryDialogOpen(true);
+    };
 
     const handleCloseCategoryDialog = () => {
         setCategoryDialogOpen(false);
@@ -75,7 +82,16 @@ const CreateHabitForm = () => {
 
     const handleCategoryCreated = (newCategory) => {
         setCategories([...categories, newCategory]);
-        setHabit({ ...habit, category: newCategory.id });
+        setHabit({ ...habit, category: newCategory.categoryId });
+    };
+
+    const handleCategoryUpdated = (updatedCategory) => {
+        setCategories(
+            categories.map((category) => (category.categoryId === updatedCategory.categoryId ? updatedCategory : category))
+        );
+        if (habit.category === updatedCategory.categoryId) {
+            setHabit({ ...habit, category: updatedCategory.categoryId });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -166,8 +182,11 @@ const CreateHabitForm = () => {
                         helperText={errors.category}
                     >
                         {categories.map((category) => (
-                            <MenuItem key={category.id} value={category.id}>
+                            <MenuItem key={category.categoryId} value={category.categoryId}>
                                 {category.name}
+                                <IconButton onClick={() => handleOpenUpdateDialog(category)} size="small" sx={{ ml: 2 }}>
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
                             </MenuItem>
                         ))}
                     </TextField>
@@ -203,6 +222,8 @@ const CreateHabitForm = () => {
                     open={categoryDialogOpen}
                     onClose={handleCloseCategoryDialog}
                     onCategoryCreated={handleCategoryCreated}
+                    onCategoryUpdated={handleCategoryUpdated}
+                    categoryToUpdate={categoryToUpdate}
                 />
             </Box>
         </Container>

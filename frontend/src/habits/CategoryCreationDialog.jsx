@@ -1,61 +1,80 @@
-import React, { useState } from 'react';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Button, Alert } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from '@mui/material';
 import axios from 'axios';
 
-const CategoryCreationDialog = ({ open, onClose, onCategoryCreated }) => {
-  const [categoryName, setCategoryName] = useState('');
-  const [error, setError] = useState(null);
+const CategoryCreationDialog = ({ open, onClose, onCategoryCreated, onCategoryUpdated, categoryToUpdate }) => {
+    const [category, setCategory] = useState({ name: '' });
 
-  const handleCategoryNameChange = (e) => {
-    setCategoryName(e.target.value);
-  };
+    useEffect(() => {
+        if (categoryToUpdate) {
+            setCategory({ name: categoryToUpdate.name });
+        } else {
+            setCategory({ name: '' });
+        }
+    }, [categoryToUpdate]);
 
-  const handleCreateCategory = async () => {
-    const jwt = localStorage.getItem('jwt');
-    if (!jwt) {
-      setError("JWT token not found");
-      return;
-    }
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setCategory((prevCategory) => ({
+            ...prevCategory,
+            [name]: value,
+        }));
+    };
 
-    try {
-      const response = await axios.post('http://localhost:8080/api/v1/habit-category/', { name: categoryName }, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      });
-      onCategoryCreated(response.data);
-      onClose();
-    } catch (error) {
-      setError(error.response?.data?.message || "Error creating category");
-    }
-  };
+    const handleSubmit = async () => {
+        const jwt = localStorage.getItem('jwt');
+        try {
+            if (categoryToUpdate) {
+                //console.log(categoryToUpdate.categoryId);
+                const response = await axios.put(
+                    `http://localhost:8080/api/v1/habit-category/${categoryToUpdate.categoryId}`,
+                    { ...category },
+                    {
+                        headers: { Authorization: `Bearer ${jwt}` },
+                    }
+                );
+                onCategoryUpdated(response.data);
+            } else {
+                const response = await axios.post(
+                    'http://localhost:8080/api/v1/habit-category/',
+                    { ...category },
+                    {
+                        headers: { Authorization: `Bearer ${jwt}` },
+                    }
+                );
+                onCategoryCreated(response.data);
+            }
+            onClose();
+        } catch (error) {
+            console.error('Error saving category:', error);
+        }
+    };
 
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Create New Category</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          Please enter the name of the new category.
-        </DialogContentText>
-        {error && <Alert severity="error">{error}</Alert>}
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Category Name"
-          type="text"
-          fullWidth
-          value={categoryName}
-          onChange={handleCategoryNameChange}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={handleCreateCategory} color="primary">
-          Create
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>{categoryToUpdate ? 'Update Category' : 'Create New Category'}</DialogTitle>
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    name="name"
+                    label="Category Name"
+                    type="text"
+                    fullWidth
+                    value={category.name}
+                    onChange={handleChange}
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={handleSubmit} color="primary">
+                    {categoryToUpdate ? 'Update' : 'Create'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
 };
 
 export default CategoryCreationDialog;

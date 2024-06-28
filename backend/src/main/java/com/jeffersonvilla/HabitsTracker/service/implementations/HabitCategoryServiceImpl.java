@@ -3,6 +3,7 @@ package com.jeffersonvilla.HabitsTracker.service.implementations;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.HABIT_CATEGORY_NOT_FOUND;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIES_OF_USER;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.NOT_AUTHORIZED_TO_ACCESS_HABIT_CATEGORIY;
+import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY;
 import static com.jeffersonvilla.HabitsTracker.service.messages.MessageConstants.USER_NOT_FOUND;
 
 import java.util.List;
@@ -84,8 +85,28 @@ public class HabitCategoryServiceImpl implements HabitCategoryService{
 
     @Override
     public HabitCategoryDto updateHabitCategory(Long categoryId, HabitCategoryDto dto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateHabitCategory'");
+        
+        Optional<HabitCategory> categoryFound = habitCategoryRepo.findById(categoryId);
+
+        if(categoryFound.isEmpty()){
+            throw new HabitCategoryNotFoundException(HABIT_CATEGORY_NOT_FOUND);
+        }
+
+        Optional<User> userFromJWT = getUserFromJWT();
+
+        if(categoryFound.get().getUser() == null 
+            || categoryFound.get().getUser().getId() != userFromJWT.get().getId()){
+
+            throw new HabitCategoryAccessDeniedException(USER_NOT_AUTORIZED_TO_USE_THIS_CATEGORY);
+        }
+
+        HabitCategory categoryToUpdate = categoryFound.get();
+
+        if(dto.getName() != null){
+            categoryToUpdate.setName(dto.getName());
+        }
+
+        return mapper.toDto(habitCategoryRepo.save(categoryToUpdate));
     }
 
     @Override

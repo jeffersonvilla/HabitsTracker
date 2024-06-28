@@ -56,7 +56,7 @@ const RegisterForm = () => {
 
             if (response.status === 200) {
                 const responseData = await response.text(); // Assuming a plain text response
-                console.log('Registration successful!', responseData);
+                //console.log('Registration successful!', responseData);
                 setSnackbarMessage(responseData);
                 setSnackbarOpen(true);
                 reset();

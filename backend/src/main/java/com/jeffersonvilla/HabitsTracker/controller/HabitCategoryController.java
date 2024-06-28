@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,6 +65,17 @@ public class HabitCategoryController {
             @PathVariable Long categoryId) {
 
         HabitCategoryDto category = habitCategoryService.getHabitCategory(categoryId);
+        return new ResponseEntity<HabitCategoryDto>(category, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Update habit category by Id", 
+        description = "Returns the habit category updated with the data of the request body")
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<HabitCategoryDto> updateHabitCategory(
+            @Parameter(description = "ID of the habit category to update") 
+            @PathVariable Long categoryId, @RequestBody HabitCategoryDto dto) {
+
+        HabitCategoryDto category = habitCategoryService.updateHabitCategory(categoryId, dto);
         return new ResponseEntity<HabitCategoryDto>(category, HttpStatus.OK);
     }
 }

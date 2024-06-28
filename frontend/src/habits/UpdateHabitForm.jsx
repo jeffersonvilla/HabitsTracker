@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { Modal, Box, TextField, Button, CircularProgress, Alert, MenuItem } from '@mui/material';
+import { Modal, Box, TextField, Button, CircularProgress, Alert, MenuItem, IconButton } from '@mui/material';
 import CategoryCreationDialog from './CategoryCreationDialog';
+import EditIcon from '@mui/icons-material/esm/Edit';
 
 const style = {
     position: 'absolute',
@@ -28,7 +29,8 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
 
     const [userId, setUserId] = useState(null);
     const [categories, setCategories] = useState([]);
-    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);  
+    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+    const [categoryToUpdate, setCategoryToUpdate] = useState(null);
 
     useEffect(() => {
         const jwt = localStorage.getItem('jwt');
@@ -59,10 +61,11 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
                     trigger: response.data.trigger,
                     category: response.data.category,
                 });
-                if(userId){
+
+                if (userId) {
                     const categoryResponse = await axios.get(`http://localhost:8080/api/v1/habit-category/user/${userId}`, {
                         headers: { Authorization: `Bearer ${jwt}` },
-                      });
+                    });
                     setCategories(categoryResponse.data);
                 }
                 setLoading(false);
@@ -102,16 +105,31 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
     };
 
     const handleOpenCategoryDialog = () => {
+        setCategoryToUpdate(null);
         setCategoryDialogOpen(true);
     };
-    
+
+    const handleOpenUpdateDialog = (category) => {
+        setCategoryToUpdate(category);
+        setCategoryDialogOpen(true);
+    };
+
     const handleCloseCategoryDialog = () => {
         setCategoryDialogOpen(false);
     };
 
+    const handleCategoryUpdated = (updatedCategory) => {
+        setCategories(
+            categories.map((category) => (category.categoryId === updatedCategory.categoryId ? updatedCategory : category))
+        );
+        if (formValues.category === updatedCategory.categoryId) {
+            setFormValues({ ...formValues, category: updatedCategory.categoryId });
+        }
+    };
+
     const handleCategoryCreated = (newCategory) => {
         setCategories([...categories, newCategory]);
-        setFormValues({ ...formValues, category: newCategory.id });
+        setFormValues({ ...formValues, category: newCategory.categoryId });
     };
 
     if (!open) {
@@ -161,17 +179,22 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
                                 margin="normal"
                             >
                                 {categories.map((category) => (
-                                  <MenuItem key={category.id} value={category.id}>
-                                    {category.name}
-                                  </MenuItem>
+                                    <MenuItem key={category.categoryId} value={category.categoryId}>
+                                        {category.name}
+                                        <IconButton onClick={() => handleOpenUpdateDialog(category)} size="small" sx={{ ml: 2 }}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                    </MenuItem>
                                 ))}
                             </TextField>
-                            <Button variant="contained" onClick={handleOpenCategoryDialog} sx={{ mb: 2 }}>
-                                Create New Category
-                            </Button>
-                            <Button type="submit" variant="contained" color="primary" fullWidth>
-                                Update Habit
-                            </Button>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                                <Button variant="contained" onClick={handleOpenCategoryDialog}>
+                                    Create New Category
+                                </Button>
+                                <Button type="submit" variant="contained" color="primary">
+                                    Update Habit
+                                </Button>
+                            </Box>
                         </form>
                     </>
                 )}
@@ -179,6 +202,8 @@ const UpdateHabitForm = ({ habitId, open, onClose }) => {
                     open={categoryDialogOpen}
                     onClose={handleCloseCategoryDialog}
                     onCategoryCreated={handleCategoryCreated}
+                    onCategoryUpdated={handleCategoryUpdated}
+                    categoryToUpdate={categoryToUpdate}
                 />
             </Box>
         </Modal>
